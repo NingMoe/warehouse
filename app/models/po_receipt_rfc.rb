@@ -29,16 +29,16 @@ class PoReceiptRfc
       function.getImportParameterList().getStructure('GOODSMVT_CODE').setValue('GM_CODE', '01')
 
       header = function.getImportParameterList().getStructure('GOODSMVT_HEADER')
-      header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'));
-      header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'));
+      header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
+      header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
       if dlv_note.invnr.present?
         header.setValue('BILL_OF_LADING', dlv_note.invnr)
       else
         header.setValue('BILL_OF_LADING', dlv_note.lifdn)
       end
-      header.setValue('REF_DOC_NO', dlv_note.lifdn);
-      header.setValue('PR_UNAME', 'LUM.LIN');
-      header.setValue('HEADER_TXT', dlv_note.lifdn);
+      header.setValue('REF_DOC_NO', dlv_note.lifdn)
+      header.setValue('PR_UNAME', 'LUM.LIN')
+      header.setValue('HEADER_TXT', dlv_note.lifdn)
 
       lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
       sql = "
