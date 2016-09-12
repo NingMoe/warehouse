@@ -1,59 +1,36 @@
-%h1 Listing po_receipts
+%h5
+  = render 'po_receipts/submenu'
 
-%table
-  %thead
-    %tr
-      %th Uuid
-      %th Barcode
-      %th Vtweg
-      %th Lifnr
-      %th Lifdn
-      %th Matnr
-      %th Werks
-      %th Pkg no
-      %th Date code
-      %th Mfg date
-      %th Menge
-      %th Alloc qty
-      %th Balqty
-      %th Status
-      %th Vtype
-      %th Impnr
-      %th Charg
-      %th Remote ip
-      %th Creator
-      %th Updater
-      %th
-      %th
-      %th
-
-  %tbody
-    - @po_receipts.each do |po_receipt|
-      %tr
-        %td= po_receipt.uuid
-        %td= po_receipt.barcode
-        %td= po_receipt.vtweg
-        %td= po_receipt.lifnr
-        %td= po_receipt.lifdn
-        %td= po_receipt.matnr
-        %td= po_receipt.werks
-        %td= po_receipt.pkg_no
-        %td= po_receipt.date_code
-        %td= po_receipt.mfg_date
-        %td= po_receipt.menge
-        %td= po_receipt.alloc_qty
-        %td= po_receipt.balqty
-        %td= po_receipt.status
-        %td= po_receipt.vtype
-        %td= po_receipt.impnr
-        %td= po_receipt.charg
-        %td= po_receipt.remote_ip
-        %td= po_receipt.creator
-        %td= po_receipt.updater
-        %td= link_to 'Show', po_receipt
-        %td= link_to 'Edit', edit_po_receipt_path(po_receipt)
-        %td= link_to 'Destroy', po_receipt, :method => :delete, :data => { :confirm => 'Are you sure?' }
-
-%br
-
-= link_to 'New Po receipt', new_po_receipt_path
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      = params[:lifnr]
+      .tab-1
+      = params[:lifdn]
+      .tab-1
+      = params[:werks]
+  .table-responsive
+    %table.table.table-bordered.table-condensed.small
+      %thead
+        %tr
+          %th
+          %th= t('material')
+          %th.text-right= t('quantity')
+          %th.text-right= t('pkg_no')
+          %th= t('date_code')
+          %th.text-center= t('mfg_date')
+          %th= t('barcode')
+          %th.text-center= t('type')
+          %th.text-center= t('lot')
+      %tbody
+        - @po_receipts.each do |row|
+          %tr
+            %td= link_to t('destroy'), row, :method => :delete, :data => { :confirm => I18n.t('are_you_sure_delete') }
+            %td= row.matnr
+            %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.pkg_no, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td= row.date_code
+            %td.text-center= row.mfg_date
+            %td= row.barcode
+            %td.text-center= row.vtype
+            %td.text-center= row.charg

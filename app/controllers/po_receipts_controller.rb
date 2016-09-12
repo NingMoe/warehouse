@@ -8,7 +8,9 @@ class PoReceiptsController < ApplicationController
   end
 
   def index
-    @po_receipts = PoReceipt.all
+    @po_receipts = PoReceipt
+                       .where(status: 10, lifnr: params[:lifnr], lifdn: params[:lifdn], werks: params[:werks])
+                       .order(:matnr, :pkg_no)
   end
 
   # GET /po_receipts/1
@@ -58,9 +60,12 @@ class PoReceiptsController < ApplicationController
   # DELETE /po_receipts/1
   # DELETE /po_receipts/1.json
   def destroy
+    lifnr = @po_receipt.lifnr
+    lifdn = @po_receipt.lifdn
+    werks = @po_receipt.werks
     @po_receipt.destroy
     respond_to do |format|
-      format.html { redirect_to po_receipts_url, notice: 'Po receipt was successfully destroyed.' }
+      format.html { redirect_to po_receipts_url(lifnr: lifnr, lifdn: lifdn, werks: werks) }
       format.json { head :no_content }
     end
   end
@@ -88,7 +93,7 @@ class PoReceiptsController < ApplicationController
   end
 
   def direct_import_scan
-    if Ziebi002.find_by_bukrs_and_dpseq(params[:bukrs],params[:dpseq]).blank?
+    if Ziebi002.find_by_bukrs_and_dpseq(params[:bukrs], params[:dpseq]).blank?
       Ziebi002.create_record_from_sap(params[:impnrs].split(','))
     end
   end
@@ -265,7 +270,7 @@ class PoReceiptsController < ApplicationController
               and a.rfc_sts='E' and b.rfc_type='E'
               and a.werks=? and nvl(b.invnr,' ') = ?
         "
-    ids = PoReceipt.find_by_sql([sql,params[:lifnr], params[:lifdn], params[:werks], params[:invnr]])
+    ids = PoReceipt.find_by_sql([sql, params[:lifnr], params[:lifdn], params[:werks], params[:invnr]])
     ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
       PoReceiptLine.where(uuid: po_receipt_line_ids).update_all(rfc_type: ' ')
       po_receipt = PoReceipt.find po_receipt_id
@@ -284,7 +289,7 @@ class PoReceiptsController < ApplicationController
               and a.rfc_sts='E' and b.rfc_type='E'
               and a.werks=? and nvl(b.invnr,' ') = ?
         "
-    ids = PoReceipt.find_by_sql([sql,params[:lifnr], params[:lifdn], params[:werks], params[:invnr]])
+    ids = PoReceipt.find_by_sql([sql, params[:lifnr], params[:lifdn], params[:werks], params[:invnr]])
     ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
       alloc_qty = PoReceiptLine.where(uuid: po_receipt_line_ids).sum(:alloc_qty)
       PoReceiptLine.delete_all(uuid: po_receipt_line_ids)

@@ -20,11 +20,13 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  search: 'search'
-  new: 'new'
-  submit: 'submit'
-  submit: 'submit'
+  search: '查找'
+  new: '創建'
+  submit: '提交'
+  destroy: '刪除'
+  are_you_sure_delete: '確認刪除'
 
+  scan_details: '掃描明細'
   unallocated_list: '未分配清單'
   allocated_po: '已分配未過賬清單'
   factory_location: '工廠區域'
