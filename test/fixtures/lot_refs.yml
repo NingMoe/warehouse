@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uuid: MyString
+  charg: MyString
+  entry_date: MyString
+  matnr: MyString
+  lifnr: MyString
+  date_code: MyString
+
+two:
+  uuid: MyString
+  charg: MyString
+  entry_date: MyString
+  matnr: MyString
+  lifnr: MyString
+  date_code: MyString

@@ -1,0 +1,27 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      = t('direct_import_unallocated')
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th.text-center= t('factory_location')
+          %th= t('import_no')
+          %th= t('trip_no')
+          %th.text-center= t('plant')
+          %th.text-right= t('scan_qty')
+          %th.text-right= t('alloc_qty')
+          %th.text-right= t('bal_qty')
+      %tbody
+        - @po_receipts.each do |row|
+          %tr
+            %td.text-center= link_to row.bukrs, direct_import_allocate_po_receipts_path(bukrs: row.bukrs, dpseq: row.dpseq, impnrs: row.impnr)
+            %td= link_to row.impnr, direct_import_allocate_po_receipts_path(bukrs: row.bukrs, dpseq: row.dpseq, impnrs: row.impnr)
+            %td= link_to row.dpseq, direct_import_allocate_po_receipts_path(bukrs: row.bukrs, dpseq: row.dpseq, impnrs: row.impnr)
+            %td.text-center= row.werks
+            %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')

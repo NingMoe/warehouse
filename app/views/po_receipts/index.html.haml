@@ -1,0 +1,59 @@
+%h1 Listing po_receipts
+
+%table
+  %thead
+    %tr
+      %th Uuid
+      %th Barcode
+      %th Vtweg
+      %th Lifnr
+      %th Lifdn
+      %th Matnr
+      %th Werks
+      %th Pkg no
+      %th Date code
+      %th Mfg date
+      %th Menge
+      %th Alloc qty
+      %th Balqty
+      %th Status
+      %th Vtype
+      %th Impnr
+      %th Charg
+      %th Remote ip
+      %th Creator
+      %th Updater
+      %th
+      %th
+      %th
+
+  %tbody
+    - @po_receipts.each do |po_receipt|
+      %tr
+        %td= po_receipt.uuid
+        %td= po_receipt.barcode
+        %td= po_receipt.vtweg
+        %td= po_receipt.lifnr
+        %td= po_receipt.lifdn
+        %td= po_receipt.matnr
+        %td= po_receipt.werks
+        %td= po_receipt.pkg_no
+        %td= po_receipt.date_code
+        %td= po_receipt.mfg_date
+        %td= po_receipt.menge
+        %td= po_receipt.alloc_qty
+        %td= po_receipt.balqty
+        %td= po_receipt.status
+        %td= po_receipt.vtype
+        %td= po_receipt.impnr
+        %td= po_receipt.charg
+        %td= po_receipt.remote_ip
+        %td= po_receipt.creator
+        %td= po_receipt.updater
+        %td= link_to 'Show', po_receipt
+        %td= link_to 'Edit', edit_po_receipt_path(po_receipt)
+        %td= link_to 'Destroy', po_receipt, :method => :delete, :data => { :confirm => 'Are you sure?' }
+
+%br
+
+= link_to 'New Po receipt', new_po_receipt_path

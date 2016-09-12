@@ -1,0 +1,1 @@
+json.array! @po_receipt_msgs, partial: 'po_receipt_msgs/po_receipt_msg', as: :po_receipt_msg

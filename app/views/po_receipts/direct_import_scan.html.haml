@@ -1,0 +1,74 @@
+= render 'po_receipts/submenu'
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          直接保稅進口掃描
+          .tab-1
+          = params[:impnrs]
+          .pull-right
+            = link_to t('other_import_no'), direct_import_po_receipts_path
+      .panel-body
+        = hidden_field_tag 'bukrs', params[:bukrs]
+        = hidden_field_tag 'dpseq', params[:dpseq]
+        = hidden_field_tag 'impnrs', params[:impnrs]
+        .form-group.col-xs-12
+          %label{for: 'barcode'}QR Code
+          = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
+      .table-responsive{style:"height:100%;overflow-y:auto;"}
+        %table.table.small.table-bordered.table-condensed
+          %thead
+            %tr
+              %th 供應商 Sup
+              %th 料號 Mat
+              %th 數量 Qty
+              %th Box
+          %tbody#summary_tbody
+
+  .col-xs-12.col-md-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          驗證結果 Scan Result
+      .table-responsive{style:"height:100%;overflow-y:auto;"}
+        %table.table.small.table-bordered.table-condensed
+          %thead
+            %tr
+              %th Seq
+              %th Qrcode
+              %th 批次 Lot
+          %tbody#status_tbody
+
+:javascript
+
+  var summary = {};
+
+  var rowCounter = 0;
+  function addrow(barcode){
+    str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
+    $('#status_tbody').prepend(str);
+    // if (rowCounter > 20){
+    //   $('tr').last().remove();
+    // }
+  }
+
+  $(document).ready(function () {
+    $('#barcode').focus();
+    $('#barcode').change(function(){
+      rowCounter += 1;
+      barcode = $('#barcode').val();
+      bukrs = $('#bukrs').val();
+      dpseq = $('#dpseq').val();
+      impnrs = $('#impnrs').val();
+      addrow(barcode);
+      $.ajax({
+        url: '/po_receipts/barcode',
+        data: {barcode: barcode, rowcounter: rowCounter, bukrs: bukrs, dpseq: dpseq, impnrs: impnrs, vtype: 'V1'}
+      })
+      $('#barcode').val('');
+    });
+  })
+
+

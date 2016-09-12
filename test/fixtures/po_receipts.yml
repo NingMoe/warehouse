@@ -1,0 +1,45 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uuid: MyString
+  barcode: MyString
+  vtweg: MyString
+  lifnr: MyString
+  lifdn: MyString
+  matnr: MyString
+  werks: MyString
+  pkg_no: 9.99
+  date_code: MyString
+  mfg_date: MyString
+  menge: 9.99
+  alloc_qty: 9.99
+  balqty: 9.99
+  status: MyString
+  vtype: MyString
+  impnr: MyString
+  charg: MyString
+  remote_ip: MyString
+  creator: MyString
+  updater: MyString
+
+two:
+  uuid: MyString
+  barcode: MyString
+  vtweg: MyString
+  lifnr: MyString
+  lifdn: MyString
+  matnr: MyString
+  werks: MyString
+  pkg_no: 9.99
+  date_code: MyString
+  mfg_date: MyString
+  menge: 9.99
+  alloc_qty: 9.99
+  balqty: 9.99
+  status: MyString
+  vtype: MyString
+  impnr: MyString
+  charg: MyString
+  remote_ip: MyString
+  creator: MyString
+  updater: MyString

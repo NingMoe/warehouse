@@ -1,0 +1,16 @@
+.row
+  .col-xs-6
+    %a.anchor{name: 'open_sto_list'}
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          = 'Open Sto List'
+      .panel-body
+        = form_tag(open_sto_list_reports_url, method: 'get') do
+          .form-inputs
+            .col-xs-4
+              = text_field_tag 'bukrs', '', class: 'form-control', placeholder: 'company:L111,L210,L300,L400', value: params[:bukrs] || 'L111'
+            .col-xs-4
+              = text_field_tag 'lifnr', '', class: 'form-control', placeholder: 'supply L210-Y', value: params[:lifnr] || 'L210-Y'
+            .col-xs-4
+              = render 'layouts/submit_button'

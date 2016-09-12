@@ -1,0 +1,9 @@
+.table-responsive
+  %table.table.table-bordered.table-condensed
+    %thead
+      %tr
+        %th= t('error_msg')
+    %tbody
+      - @msgs.each do |msg|
+        %tr
+          %td= msg.rfc_msg

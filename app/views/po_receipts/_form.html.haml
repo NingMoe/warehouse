@@ -1,0 +1,27 @@
+= simple_form_for(@po_receipt) do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :uuid
+    = f.input :barcode
+    = f.input :vtweg
+    = f.input :lifnr
+    = f.input :lifdn
+    = f.input :matnr
+    = f.input :werks
+    = f.input :pkg_no
+    = f.input :date_code
+    = f.input :mfg_date
+    = f.input :menge
+    = f.input :alloc_qty
+    = f.input :balqty
+    = f.input :status
+    = f.input :vtype
+    = f.input :impnr
+    = f.input :charg
+    = f.input :remote_ip
+    = f.input :creator
+    = f.input :updater
+
+  .form-actions
+    = f.button :submit

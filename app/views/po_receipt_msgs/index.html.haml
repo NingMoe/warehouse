@@ -1,0 +1,33 @@
+%h1 Listing po_receipt_msgs
+
+%table
+  %thead
+    %tr
+      %th Uuid
+      %th Lifnr
+      %th Lifdn
+      %th Werks
+      %th Invnr
+      %th Rfc type
+      %th Rfc msg
+      %th
+      %th
+      %th
+
+  %tbody
+    - @po_receipt_msgs.each do |po_receipt_msg|
+      %tr
+        %td= po_receipt_msg.uuid
+        %td= po_receipt_msg.lifnr
+        %td= po_receipt_msg.lifdn
+        %td= po_receipt_msg.werks
+        %td= po_receipt_msg.invnr
+        %td= po_receipt_msg.rfc_type
+        %td= po_receipt_msg.rfc_msg
+        %td= link_to 'Show', po_receipt_msg
+        %td= link_to 'Edit', edit_po_receipt_msg_path(po_receipt_msg)
+        %td= link_to 'Destroy', po_receipt_msg, :method => :delete, :data => { :confirm => 'Are you sure?' }
+
+%br
+
+= link_to 'New Po receipt msg', new_po_receipt_msg_path

@@ -1,0 +1,1 @@
+json.partial! "po_receipt_msgs/po_receipt_msg", po_receipt_msg: @po_receipt_msg

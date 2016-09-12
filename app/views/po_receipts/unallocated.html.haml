@@ -1,0 +1,56 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      未分配貨單 Unallocated Delivery Notes
+  .panel-body
+    = form_tag(unallocated_po_receipts_path, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .form-group.col-xs-12.col-sm-2
+        %label{for: 'vtweg'}= t('factory_location')
+        = select_tag 'vtweg', options_for_select(%w[DT TX PH], params[:vtweg] || current_user.vtweg), class: 'form-control'
+      .form-group.col-xs-12.col-sm-2
+        %label{for: 'entry_date'}= t('scan_date')
+        = text_field_tag 'entry_date', params[:entry_date], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifnr'}= t('supplier')
+        = text_field_tag 'lifnr', params[:lifnr], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifdn'}= t('dlv_note')
+        = text_field_tag 'lifdn', params[:lifdn], class: 'form-control'
+
+      .form-group.col-xs-12.col-sm-2
+        %label 搜索
+        %br
+          = render 'layouts/search_button'
+
+  - if @po_receipts.present?
+    .table-responsive
+      %table.table.table-bordered.table-condensed
+        %thead
+          %tr
+            %th= t('action')
+            %th= t('supplier')
+            %th= t('dlv_note')
+            %th.text-right= t('quantity')
+            %th.text-right= t('pkg_no')
+            %th.text-center= t('plant')
+            %th= t('scan_date')
+            %th= t('import_no')
+        %tbody
+          - @po_receipts.each do |row|
+            %tr
+              - if row.vtype.blank?
+                %td= link_to t('allocate_po'), allocate_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks)
+                %td= link_to row.lifnr, allocate_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks)
+                %td= link_to row.lifdn, allocate_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks)
+              - else
+                %td
+                %td= row.lifnr
+                %td= row.lifdn
+              %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.pkg_no, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-center= row.werks
+              %td= row.entry_date
+              %td= row.impnr

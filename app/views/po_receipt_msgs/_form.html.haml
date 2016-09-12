@@ -1,0 +1,14 @@
+= simple_form_for(@po_receipt_msg) do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :uuid
+    = f.input :lifnr
+    = f.input :lifdn
+    = f.input :werks
+    = f.input :invnr
+    = f.input :rfc_type
+    = f.input :rfc_msg
+
+  .form-actions
+    = f.button :submit

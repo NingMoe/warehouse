@@ -1,0 +1,21 @@
+%h5 掃描收料鏈接 Barcode Received Link
+
+.col-xs-12.col-xs-4
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        一般PO來料 General PO Received
+    .panel-body
+      %h5= link_to t('scan_receive_label'), domestic_po_receipts_path
+      %h5= link_to t('unallocated_list'), unallocated_po_receipts_path
+      %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
+
+.col-xs-12.col-xs-4
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        IEB保稅進口來料 IEB Import Goods
+    .panel-body
+      %h5= link_to t('scan_receive_label'), direct_import_po_receipts_path
+      %h5= link_to t('unallocated_list'), direct_import_unallocated_po_receipts_path
+      %h5= link_to t('allocated_po'), allocated_po_po_receipts_path

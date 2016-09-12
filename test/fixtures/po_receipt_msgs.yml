@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uuid: MyString
+  lifnr: MyString
+  lifdn: MyString
+  werks: MyString
+  invnr: MyString
+  rfc_type: MyString
+  rfc_msg: MyText
+
+two:
+  uuid: MyString
+  lifnr: MyString
+  lifdn: MyString
+  werks: MyString
+  invnr: MyString
+  rfc_type: MyString
+  rfc_msg: MyText

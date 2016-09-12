@@ -1,0 +1,18 @@
+%h5
+  = t('general_receipt')
+  .tab-1
+  = link_to t('scan_receive_label'), domestic_po_receipts_path
+  .tab-1
+  = link_to t('unallocated_list'), unallocated_po_receipts_path
+  .tab-1
+  = link_to t('allocated_po'), allocated_po_po_receipts_path
+  .tab-1
+  |
+  .tab-1
+  = t('ieb_import')
+  .tab-1
+  = link_to t('scan_receive_label'), direct_import_po_receipts_path
+  .tab-1
+  = link_to t('unallocated_list'), direct_import_unallocated_po_receipts_path
+  .tab-1
+  = link_to t('allocated_po'), allocated_po_po_receipts_path

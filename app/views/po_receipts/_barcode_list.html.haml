@@ -1,0 +1,23 @@
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      掃描條碼明細 Barcode Details
+  %table.table.table-bordered.table-condensed
+    %thead
+      %tr
+        %th= t('material')
+        %th= t('pkg_no')
+        %th= t('quantity')
+        %th= t('barcode')
+        %th= t('date_code')
+        %th= t('mfg_date')
+    %tbody
+      - @po_receipts.each do |row|
+        %tr
+          %td= row.matnr
+          %td.text-right= number_with_precision(row.pkg_no, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+          %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+          %td= row.barcode
+          %td= row.date_code
+          %td= row.mfg_date
+

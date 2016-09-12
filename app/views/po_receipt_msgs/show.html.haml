@@ -1,0 +1,27 @@
+%p#notice= notice
+
+%p
+  %b Uuid:
+  = @po_receipt_msg.uuid
+%p
+  %b Lifnr:
+  = @po_receipt_msg.lifnr
+%p
+  %b Lifdn:
+  = @po_receipt_msg.lifdn
+%p
+  %b Werks:
+  = @po_receipt_msg.werks
+%p
+  %b Invnr:
+  = @po_receipt_msg.invnr
+%p
+  %b Rfc type:
+  = @po_receipt_msg.rfc_type
+%p
+  %b Rfc msg:
+  = @po_receipt_msg.rfc_msg
+
+= link_to 'Edit', edit_po_receipt_msg_path(@po_receipt_msg)
+\|
+= link_to 'Back', po_receipt_msgs_path

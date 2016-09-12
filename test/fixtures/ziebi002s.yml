@@ -1,0 +1,37 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uuid: MyString
+  bukrs: MyString
+  dpseq: MyString
+  impnr: MyString
+  impim: MyString
+  invnr: MyString
+  ebeln: MyString
+  ebelp: MyString
+  matnr: MyString
+  lifnr: MyString
+  meins: MyString
+  menge: 9.99
+  alloc_qty: 9.99
+  balqty: 9.99
+  status: MyString
+  werks: MyString
+
+two:
+  uuid: MyString
+  bukrs: MyString
+  dpseq: MyString
+  impnr: MyString
+  impim: MyString
+  invnr: MyString
+  ebeln: MyString
+  ebelp: MyString
+  matnr: MyString
+  lifnr: MyString
+  meins: MyString
+  menge: 9.99
+  alloc_qty: 9.99
+  balqty: 9.99
+  status: MyString
+  werks: MyString

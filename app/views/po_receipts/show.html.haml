@@ -1,0 +1,66 @@
+%p#notice= notice
+
+%p
+  %b Uuid:
+  = @po_receipt.uuid
+%p
+  %b Barcode:
+  = @po_receipt.barcode
+%p
+  %b Vtweg:
+  = @po_receipt.vtweg
+%p
+  %b Lifnr:
+  = @po_receipt.lifnr
+%p
+  %b Lifdn:
+  = @po_receipt.lifdn
+%p
+  %b Matnr:
+  = @po_receipt.matnr
+%p
+  %b Werks:
+  = @po_receipt.werks
+%p
+  %b Pkg no:
+  = @po_receipt.pkg_no
+%p
+  %b Date code:
+  = @po_receipt.date_code
+%p
+  %b Mfg date:
+  = @po_receipt.mfg_date
+%p
+  %b Menge:
+  = @po_receipt.menge
+%p
+  %b Alloc qty:
+  = @po_receipt.alloc_qty
+%p
+  %b Balqty:
+  = @po_receipt.balqty
+%p
+  %b Status:
+  = @po_receipt.status
+%p
+  %b Vtype:
+  = @po_receipt.vtype
+%p
+  %b Impnr:
+  = @po_receipt.impnr
+%p
+  %b Charg:
+  = @po_receipt.charg
+%p
+  %b Remote ip:
+  = @po_receipt.remote_ip
+%p
+  %b Creator:
+  = @po_receipt.creator
+%p
+  %b Updater:
+  = @po_receipt.updater
+
+= link_to 'Edit', edit_po_receipt_path(@po_receipt)
+\|
+= link_to 'Back', po_receipts_path

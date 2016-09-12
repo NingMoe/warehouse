@@ -1,0 +1,77 @@
+# Files in the config/locales directory are used for internationalization
+# and are automatically loaded by Rails. If you want to use locales other
+# than English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, please read the Rails Internationalization guide
+# available at http://guides.rubyonrails.org/i18n.html.
+
+en:
+  search: 'search'
+  new: 'new'
+  submit: 'submit'
+  submit: 'submit'
+
+  unallocated_list: '未分配清單'
+  allocated_po: '已分配未過賬清單'
+  factory_location: '工廠區域'
+  barcode_receipt: '條碼收貨'
+  general_receipt: '一般掃描收貨'
+  barcode: '條碼'
+  material: '材料'
+  scan_date: '掃描日期'
+  supplier: '供應商'
+  dlv_note: '送貨單'
+  plant: '工廠'
+  pkg_no: '箱號'
+  date_code: '週期'
+  mfg_date: '生產日期'
+  quantity: '數量'
+  alloc_qty: '分配數量'
+  bal_qty: '剩餘數量'
+  status: '狀態'
+  type: '類型'
+  import: '進口'
+  import_no: '進口號碼'
+  other_import_no: '其它進口號碼'
+  lot: '批次'
+  ip_addr: 'ip地址'
+  creator: '建立者'
+  updater: '更新者'
+  dlv_qty: '送貨數量'
+  po_qty: 'PO未結數量'
+  xalloc_qty: '已分配未過賬'
+  pur_ord: '採購訂單'
+  line: '行項'
+  invoice: '發票'
+  unit: '單位'
+  error_msg: '錯誤信息'
+  action: '動作'
+  err_msg: '錯誤信息'
+  repost: '重新過賬'
+  deallocate: '解除分配'
+  allocate_po: '分配PO'
+  direct_import: '直接進口收貨'
+  trip_no: '車次'
+  doc_date: '文件日期'
+  custom_qty: '報關數量'
+  scan_qty: '掃描數量'
+  direct_import_unallocated: '直接進口未分配清單'
+  scan_receive_label: '掃描進來標籤紙'
+  home: '主頁'
+  general_po: '一般PO'
+  ieb_import: 'IEB進口'
+

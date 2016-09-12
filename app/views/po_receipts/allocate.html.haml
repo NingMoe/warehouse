@@ -1,0 +1,67 @@
+= render 'po_receipts/submenu'
+
+- allow_sbm = true
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      = params[:lifnr]
+      .tab-1
+      = params[:lifdn]
+      .tab-1
+      = params[:werks]
+      .tab-1
+      貨單分配確認 Confirm Delivery Note
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th= t('material')
+          %th.text-right= t('dlv_qty')
+          %th.text-right= t('pkg_no')
+          %th.text-right= t('alloc_qty')
+          %th.text-right= t('bal_qty')
+          %th.text-right= t('po_qty')
+          %th.text-right= t('xalloc_qty')
+      %tbody
+        - @mats.each do |key, value|
+          - allow_sbm = false if value[:balqty] > 0
+          %tr{class: value[:balqty] > 0 ? 'danger' : ''}
+            %td
+              = link_to key, barcode_list_po_receipts_path(lifnr: params[:lifnr], lifdn: params[:lifdn], matnr: key), remote: true
+            %td.text-right
+              = link_to number_with_precision(value[:balqty] + value[:alcqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ','), barcode_list_po_receipts_path(lifnr: params[:lifnr], lifdn: params[:lifdn], matnr: key), remote: true
+            %td.text-right= number_with_precision(value[:pkgqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(value[:alcqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(value[:balqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(value[:opnqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(value[:xalcqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+
+#barcode_list
+
+= form_tag(cfm_allocation_po_receipts_path, method: 'post') do
+  = hidden_field_tag 'lifnr', params[:lifnr]
+  = hidden_field_tag 'lifdn', params[:lifdn]
+  = hidden_field_tag 'werks', params[:werks]
+  = hidden_field_tag 'user', current_user.email
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        採購訂單分配明細 PO Allocation List
+    .table-responsive
+      %table.table.table-bordered.table-condensed
+        %thead
+          %tr
+            %th= t('material')
+            %th= t('pur_ord')
+            %th.text-right= t('alloc_qty')
+        %tbody
+          - @pos.each do |key, value|
+            = hidden_field_tag "po_#{value[:matnr]}_#{key}", "#{value[:alcqty]}_#{value[:netpr]}_#{value[:peinh]}_#{value[:meins]}"
+            %tr
+              %td= value[:matnr]
+              %td= key
+              %td.text-right= number_with_precision(value[:alcqty], precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+    - if allow_sbm
+      .panel-footer
+        = render 'layouts/submit_button'

@@ -1,0 +1,93 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      已分配未過賬明細 Wait for Posting List
+  .panel-body
+    = form_tag(allocated_po_po_receipts_path, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .form-group.col-xs-12.col-sm-2
+        %label{for: 'vtweg'}= t('factory_location')
+        = select_tag 'vtweg', options_for_select(%w[DT TX PH], params[:vtweg] || current_user.vtweg), class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifnr'}= t('supplier')
+        = text_field_tag 'lifnr', params[:lifnr], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifdn'}= t('dlv_note')
+        = text_field_tag 'lifdn', params[:lifdn], class: 'form-control'
+      .form-group.col-xs-12.col-sm-2
+        %label{for: 'werks'}= t('plant')
+        = text_field_tag 'werks', params[:werks], class: 'form-control'
+
+      .form-group.col-xs-12.col-sm-2
+        %label 搜索
+        %br
+          = render 'layouts/search_button'
+
+  - if @po_receipts.present?
+    .table-responsive
+      %table.table.table-bordered.table-condensed.small
+        %thead
+          %tr
+            %th
+            %th= t('supplier')
+            %th= t('dlv_note')
+            %th= t('material')
+            %th.text-center= t('plant')
+            %th.text-center= t('lot')
+            %th= t('date_code')
+            %th.text-center= t('mfg_date')
+            %th.text-center= t('scan_date')
+            %th.text-center= t('pur_ord')
+            %th.text-right= t('alloc_qty')
+            %th.text-center= t('unit')
+            %th.text-center= t('import')
+            %th= t('invoice')
+            %th.text-center= t('status')
+        %tbody
+          - @po_receipts.each do |row|
+            %tr
+              - if row.rfc_type.present?
+                %td{rowspan: 2}
+              - else
+                %td
+              %td= row.lifnr
+              %td= row.lifdn
+              %td= row.matnr
+              %td.text-center= row.werks
+              %td.text-center= row.charg
+              %td= row.date_code
+              %td.text-center= row.mfg_date
+              %td.text-center= row.entry_date
+              %td.text-center= "#{row.ebeln}.#{row.ebelp}"
+              %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-center= row.meins
+              %td.text-center= "#{row.impnr}.#{row.impim}" if row.impnr.present?
+              %td= row.invnr
+              %td.text-center= row.rfc_type
+            - if row.rfc_type.present?
+              %tr
+                %td{colspan: 14}
+                  = link_to t('error_msg'), dsp_rfc_msg_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks, invnr: row.invnr), remote: true
+                  .tab-1
+                  = link_to t('repost'), repost_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks, invnr: row.invnr)
+                  .tab-1
+                  = link_to t('deallocate'), deallocate_po_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks, invnr: row.invnr)
+
+
+#errorDialog.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog.modal-lg{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data:{dismiss: 'modal'}, aria:{label:'close'}}
+          %span{aria:{hidden: 'true'}} &times;
+        .modal-title
+          SAP 過賬錯誤信息 Posting Error Information
+      .modal-body
+        #errorTable
+
+      .modal-footer
+        %button.btn.btn-default{data:{dismiss: 'modal'}} Close
+
+

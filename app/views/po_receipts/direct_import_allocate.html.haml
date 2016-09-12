@@ -1,0 +1,127 @@
+= render 'po_receipts/submenu'
+
+- if @complete_scan
+  = form_tag(allocated_po_po_receipts_path, method: 'get') do
+    = hidden_field_tag 'bukrs', params[:bukrs]
+    = hidden_field_tag 'impnrs', params[:impnrs]
+    = hidden_field_tag 'dpseq', params[:dpseq]
+    = hidden_field_tag 'user', current_user.email
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          = render 'layouts/submit_button'
+          .tab-1
+          可分配掃描明細 (掃描數量 等於 報關數量)
+          .tab-1
+            = params[:impnrs]
+      .table-responsive
+        %table.table.table-bordered.table-condensed.small
+          %thead
+            %tr
+              %th
+              %th= t('material')
+              %th= t('supplier')
+              %th.text-center= t('plant')
+              %th.text-right= t('custom_qty')
+              %th.text-right= t('scan_qty')
+              %th.text-right= t('alloc_qty')
+              %th.text-right= t('bal_qty')
+          %tbody
+            - @rows.select{|c| c.menge == c.balqty}.each do |row|
+              %tr
+                %td.pull-right
+                  = check_box_tag 'keys', "#{row.matnr}_#{row.lifnr}", true, class: 'checkbox'
+                %td= row.matnr
+                %td= row.lifnr
+                %td.text-center= row.werks
+                %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+                %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+                %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+                %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+
+- if @incomplete_scan
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        未完成掃描明細 (掃描數量 不足 報關數量)
+        .tab-1
+          = params[:impnrs]
+    .table-responsive
+      %table.table.table-bordered.table-condensed.small
+        %thead
+          %tr
+            %th= t('material')
+            %th= t('supplier')
+            %th.text-center= t('plant')
+            %th.text-right= t('custom_qty')
+            %th.text-right= t('scan_qty')
+            %th.text-right= t('alloc_qty')
+            %th.text-right= t('bal_qty')
+        %tbody
+          - @rows.select{|c| c.menge != c.balqty and c.scanqty > 0}.each do |row|
+            %tr
+              %td= row.matnr
+              %td= row.lifnr
+              %td.text-center= row.werks
+              %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+
+- if @not_scan
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        未掃描明細 (掃描數量 等於 0)
+        .tab-1
+          = params[:impnrs]
+    .table-responsive
+      %table.table.table-bordered.table-condensed.small
+        %thead
+          %tr
+            %th= t('material')
+            %th= t('supplier')
+            %th.text-center= t('plant')
+            %th.text-right= t('custom_qty')
+            %th.text-right= t('scan_qty')
+            %th.text-right= t('alloc_qty')
+            %th.text-right= t('bal_qty')
+        %tbody
+          - @rows.select{|c| c.scanqty == 0}.each do |row|
+            %tr
+              %td= row.matnr
+              %td= row.lifnr
+              %td.text-center= row.werks
+              %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+
+- if @allocated
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        分配完成 (報關數量 等於 分配數量)
+        .tab-1
+          = params[:impnrs]
+    .table-responsive
+      %table.table.table-bordered.table-condensed.small
+        %thead
+          %tr
+            %th= t('material')
+            %th= t('supplier')
+            %th.text-center= t('plant')
+            %th.text-right= t('custom_qty')
+            %th.text-right= t('scan_qty')
+            %th.text-right= t('alloc_qty')
+            %th.text-right= t('bal_qty')
+        %tbody
+          - @rows.select{|c| c.menge == c.alloc_qty}.each do |row|
+            %tr
+              %td= row.matnr
+              %td= row.lifnr
+              %td.text-center= row.werks
+              %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')

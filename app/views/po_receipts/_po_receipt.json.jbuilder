@@ -1,0 +1,2 @@
+json.extract! po_receipt, :id, :uuid, :barcode, :vtweg, :lifnr, :lifdn, :matnr, :werks, :pkg_no, :date_code, :mfg_date, :menge, :alloc_qty, :balqty, :status, :vtype, :impnr, :charg, :remote_ip, :creator, :updater, :created_at, :updated_at
+json.url po_receipt_url(po_receipt, format: :json)

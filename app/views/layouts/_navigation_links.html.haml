@@ -1,0 +1,18 @@
+- if user_signed_in?
+  /
+    %li.dropdown
+      %a.dropdown-toggle{data: {toggle: "dropdown"}, href: "#"}
+        = t('barcode_receipt')
+        %b.caret
+      %ul.dropdown-menu
+        %li= link_to t('home'), home_po_receipts_path
+        %li= link_to t('general_receipt'), domestic_po_receipts_path
+        %li= link_to t('direct_import'), direct_import_po_receipts_path
+        %li= link_to t('unallocated_list'), unallocated_po_receipts_path
+        %li= link_to t('allocated_po'), allocated_po_po_receipts_path
+
+  %li= link_to t('barcode_receipt'), home_po_receipts_path
+  %li= link_to '退出', destroy_user_session_path, :method=>'delete'
+- else
+  %li= link_to '登入', new_user_session_path
+
