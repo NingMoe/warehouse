@@ -21,8 +21,8 @@ class LotRef < ActiveRecord::Base
     return lot_ref.first.charg if lot_ref.present?
 
     #創建新的批次號
-    last_charg = LotRef.where("charg like '#{entry_date[0..3]}%'").maximum(:charg)
-    charg = last_charg.nil? ? "#{entry_date[0..3]}000001" : (last_charg.to_i + 1).to_s
+    last_charg = LotRef.where("charg like '#{entry_date[2..5]}%'").maximum(:charg)
+    charg = last_charg.nil? ? "#{entry_date[2..5]}000001" : (last_charg.to_i + 1).to_s
 
     lot_ref = LotRef.create(charg: charg, entry_date: entry_date, matnr: matnr, lifnr: lifnr, date_code: date_code)
 
