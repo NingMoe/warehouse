@@ -124,7 +124,7 @@ class PoReceiptRfc
           end
         end
       rescue Exception => exception
-
+        ids = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr])
         ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
           PoReceiptLine.where(uuid: po_receipt_line_ids).update_all(rfc_type: 'E')
           po_receipt = PoReceipt.find po_receipt_id
