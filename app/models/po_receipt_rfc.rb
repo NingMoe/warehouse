@@ -124,6 +124,13 @@ class PoReceiptRfc
           end
         end
       rescue Exception => exception
+        sql = "
+          select distinct b.uuid,b.po_receipt_id
+            from po_receipt a
+              join po_receipt_line b on b.po_receipt_id = a.uuid
+            where a.status='20' and b.status='20' and a.lifnr = ? and a.lifdn = ?
+              and a.werks=? and nvl(b.invnr,' ') = ?
+        "
         ids = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr])
         ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
           PoReceiptLine.where(uuid: po_receipt_line_ids).update_all(rfc_type: 'E')
