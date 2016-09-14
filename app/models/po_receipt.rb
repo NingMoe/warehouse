@@ -11,7 +11,7 @@ class PoReceipt < ActiveRecord::Base
     buf = barcode.split("@")
     return contents[:errors] = '格式錯誤 Format Error' if buf.size < 10
     return contents[:errors] = '數量錯誤 Qty Error' if buf[7].to_f == 0.0
-    return contents[:errors] = '製造日期錯誤 MfgDate Error' if buf[6].size != 6
+    return contents[:errors] = '製造日期錯誤 MfgDate Error' if buf[6].size != 8
     Date.strptime(buf[6],'%Y%m%d') rescue return contents[:errors] = '製造日期錯誤 MfgDate Error'
 
     contents[:matnr] = buf[1].gsub(' ', '').upcase
