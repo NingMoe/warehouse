@@ -48,7 +48,7 @@
         %tbody
           - @po_receipts.each do |row|
             %tr
-              - if row.rfc_type.present?
+              - if row.rfc_type.present? or row.rfc_status.present?
                 %td{rowspan: 2}
               - else
                 %td
@@ -66,7 +66,7 @@
               %td.text-center= "#{row.impnr}.#{row.impim}" if row.impnr.present?
               %td= row.invnr
               %td.text-center= row.rfc_type
-            - if row.rfc_type.present?
+            - if row.rfc_type.present? or row.rfc_status.present?
               %tr
                 %td{colspan: 14}
                   = link_to t('error_msg'), dsp_rfc_msg_po_receipts_path(lifnr: row.lifnr, lifdn: row.lifdn, werks: row.werks, invnr: row.invnr), remote: true

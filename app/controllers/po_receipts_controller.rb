@@ -241,7 +241,7 @@ class PoReceiptsController < ApplicationController
       select a.lifnr,a.lifdn,a.matnr,a.werks,a.charg,a.date_code,a.mfg_date,a.entry_date,
              b.ebeln,b.ebelp,
              sum(b.alloc_qty) alloc_qty, b.meins,
-             b.impnr,b.impim,b.invnr,b.rfc_type
+             b.impnr,b.impim,b.invnr,b.rfc_type, a.rfc_sts
         from po_receipt a
           join po_receipt_line b on b.po_receipt_id = a.uuid
         where a.status='20'
@@ -249,7 +249,7 @@ class PoReceiptsController < ApplicationController
           and lifnr like '%#{params[:lifnr]}%'
           and lifdn like '%#{params[:lifdn]}%'
         group by a.lifnr,a.lifdn,a.matnr,a.werks,a.charg,a.date_code,a.mfg_date,a.entry_date,
-                 b.ebeln,b.ebelp,b.impnr,b.impim,b.invnr,b.rfc_type, b.meins
+                 b.ebeln,b.ebelp,b.impnr,b.impim,b.invnr,b.rfc_type, b.meins, a.rfc_sts
         order by a.lifnr,a.lifdn,a.matnr,a.werks,a.charg
     "
     @po_receipts = PoReceipt.find_by_sql(sql)
