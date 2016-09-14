@@ -303,6 +303,28 @@ class PoReceiptsController < ApplicationController
     redirect_to allocated_po_po_receipts_path
   end
 
+  def print_lot_label
+    sql = "
+      select a.charg,a.matnr,a.date_code,a.lifnr,a.lifdn,a.mfg_date,a.status, count(*) counter
+        from po_receipt a
+        where a.lot_label=' ' and a.vtweg like '%#{current_user.vtweg}%' and a.status in ('20','30')
+        group by a.charg,a.matnr,a.date_code,a.lifnr,a.lifdn,a.mfg_date,a.status
+    "
+    @po_receipts = PoReceipt.find_by_sql(sql)
+  end
+
+  def cfm_print_lot_label
+
+  end
+
+  def reprint_lot_label
+
+  end
+
+  def cfm_reprint_lot_label
+
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_po_receipt

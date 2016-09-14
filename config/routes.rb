@@ -18,6 +18,10 @@ Rails.application.routes.draw do
     get :repost, on: :collection
     get :deallocate_po, on: :collection
     post :cfm_allocation, on: :collection
+    get :print_lot_label, on: :collection
+    post :cfm_print_lot_label, on: :collection
+    get :reprint_lot_label, on: :collection
+    post :cfm_reprint_lot_label, on: :collection
   end
 
   resources :reports do

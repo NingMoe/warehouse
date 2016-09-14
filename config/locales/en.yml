@@ -76,4 +76,8 @@ en:
   home: '主頁'
   general_po: '一般PO'
   ieb_import: 'IEB進口'
+  label_qty: '標籤數量'
+  status_20: '已分配'
+  status_30: '已過賬'
+  print_lot_label: '打印Lot標籤'
 

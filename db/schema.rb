@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160909060849) do
+ActiveRecord::Schema.define(version: 20160912234801) do
 
   create_table "barcode", id: false, force: :cascade do |t|
     t.string   "uuid",                           null: false
@@ -74,11 +74,13 @@ ActiveRecord::Schema.define(version: 20160909060849) do
     t.string   "rfc_sts",                             default: " ", null: false
     t.string   "dpseq"
     t.string   "bukrs"
+    t.string   "lot_label",                           default: " "
   end
 
   add_index "po_receipt", ["barcode"], name: "index_po_receipt_on_barcode", unique: true
   add_index "po_receipt", ["bukrs", "dpseq", "lifnr", "matnr", "werks"], name: "i_po_rec_buk_dps_lif_mat_wer"
   add_index "po_receipt", ["lifnr", "lifdn"], name: "i_po_receipt_lifnr_lifdn"
+  add_index "po_receipt", ["lot_label", "vtweg"], name: "i_po_receipt_lot_label_vtweg"
   add_index "po_receipt", ["uuid"], name: "index_po_receipt_on_uuid", unique: true
   add_index "po_receipt", ["vtype", "status"], name: "i_po_receipt_vtype_status"
 

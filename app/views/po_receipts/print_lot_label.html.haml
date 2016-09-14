@@ -1,0 +1,33 @@
+= render 'po_receipts/submenu'
+
+= form_tag(cfm_print_lot_label_po_receipts_path, method: 'post')
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      未打印Lot標籤清單 Lot label not printed
+  .table-responsive
+    %table.table.table-bordered.table-condensed.small
+      %thead
+        %tr
+          %th
+          %th.text-center= t('lot')
+          %th.text-right= t('label_qty')
+          %th= t('material')
+          %th= t('date_code')
+          %th= t('supplier')
+          %th= t('dlv_note')
+          %th.text-center= t('mfg_date')
+          %th= t('status')
+      %tbody
+        - @po_receipts.each do |row|
+          %tr
+            %td.text-right
+              = check_box_tag 'keys', "#{row.charg}_#{row.matnr}_#{row.counter.to_i}", true, class: 'checkbox'
+            %td.text-center= row.charg
+            %td.text-right= number_with_precision(row.counter, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td= row.matnr
+            %td= row.date_code
+            %td= row.lifnr
+            %td= row.lifdn
+            %td= row.mfg_date
+            %td= row.status
