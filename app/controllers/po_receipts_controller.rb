@@ -309,12 +309,22 @@ class PoReceiptsController < ApplicationController
         from po_receipt a
         where a.lot_label=' ' and a.vtweg like '%#{current_user.vtweg}%' and a.status in ('20','30')
         group by a.charg,a.matnr,a.date_code,a.lifnr,a.lifdn,a.mfg_date,a.status
+        order by a.charg
     "
-    @po_receipts = PoReceipt.find_by_sql(sql)
+     list = PoReceipt.find_by_sql(sql)
+    @po_receipts = Kaminari.paginate_array(list).page(params[:page]).per(50)
   end
 
   def cfm_print_lot_label
-
+    @zpl = ''
+    params[:keys].each do |key|
+      buf = key.split('_')
+      charg =  buf[0]
+      matnr =  buf[1]
+      date_code =  buf[2]
+      counter =  buf[3]
+      PoReceipt.where(charg: buf[0]).update_all(lot_label: 'X')
+    end
   end
 
   def reprint_lot_label

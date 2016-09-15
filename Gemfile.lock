@@ -93,6 +93,9 @@ GEM
       multi_json (~> 1.2)
     jdbc-sqlite3 (3.8.11.2)
     json (1.8.3-java)
+    kaminari (0.17.0)
+      actionpack (>= 3.0.0)
+      activesupport (>= 3.0.0)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     macaddr (1.7.1)
@@ -199,6 +202,7 @@ DEPENDENCIES
   high_voltage
   html2haml
   jbuilder (~> 2.0)
+  kaminari
   pry-rails
   puma
   rails (= 4.2.7)

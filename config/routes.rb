@@ -28,6 +28,12 @@ Rails.application.routes.draw do
     get :open_sto_list, on: :collection
   end
 
+  resources :user_ldaps do
+    get :extra_info, on: :collection
+    get :update_info, on: :collection
+  end
+
+  resources :printers
   devise_for :users
   #resources :users
   root to: 'visitors#index'

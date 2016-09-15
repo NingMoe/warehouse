@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160912234801) do
+ActiveRecord::Schema.define(version: 20160915101307) do
 
   create_table "barcode", id: false, force: :cascade do |t|
     t.string   "uuid",                           null: false
@@ -318,6 +318,7 @@ ActiveRecord::Schema.define(version: 20160912234801) do
     t.datetime "updated_at",                                         null: false
     t.string   "name"
     t.string   "vtweg"
+    t.string   "lot_label_printer"
   end
 
   add_index "user_ldap", ["email"], name: "index_user_ldap_on_email", unique: true

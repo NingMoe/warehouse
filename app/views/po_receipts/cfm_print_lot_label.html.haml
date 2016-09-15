@@ -1,0 +1,15 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      打印Lot標籤 Print Lot Label
+  .panel-body
+    .form-group.col-xs-12
+      %label{for: 'printer'}= t('printer')
+      = text_field_tag 'printer', @zpl, class: 'form-control', readonly: true
+
+    .form-group.col-xs-12
+      %label{for: 'zpl'}= t('barcode_print_command')
+      = text_area_tag 'zpl', @zpl, class: 'form-control', readonly: true
+

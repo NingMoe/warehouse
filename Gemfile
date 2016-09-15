@@ -21,6 +21,7 @@ gem 'axlsx', '2.1.0.pre'
 gem 'rubyzip', '~> 1.1.0'
 gem 'axlsx_rails'
 gem 'uuid'
+gem 'kaminari'
 
 group :development do
   gem 'better_errors'

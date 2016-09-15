@@ -1,0 +1,28 @@
+%h5
+  維護用戶信息 Maintain User Info
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      用戶信息 User Info
+  .panel-body
+    = form_tag(update_info_user_ldaps_path, method: 'get') do
+
+      = hidden_field_tag 'email', @user.email
+
+      %h5= @user.email
+
+      .form-group
+        %label{for: 'name'}= t('name')
+        = text_field_tag 'name', @user.name, class: 'form-control'
+
+      .form-group
+        %label{for: 'vtweg'}= t('factory_location')
+        = select_tag 'vtweg', options_for_select(%w[DT TX PH], @user.vtweg), class: 'form-control'
+
+      .form-group
+        = label_tag 'lot_label_printer_id', t('lot_label_printer_id')
+        = select_tag 'lot_label_printer_id', options_from_collection_for_select(Printer.all.select(:uuid,:code), 'uuid', 'code', current_user.lot_label_printer_id), class: 'select optional form-control'
+
+
+      = render 'layouts/submit_button'
