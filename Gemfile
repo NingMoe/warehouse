@@ -22,6 +22,7 @@ gem 'rubyzip', '~> 1.1.0'
 gem 'axlsx_rails'
 gem 'uuid'
 gem 'kaminari'
+gem 'rack-timeout'
 
 group :development do
   gem 'better_errors'
