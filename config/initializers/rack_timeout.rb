@@ -1,1 +1,1 @@
-Rack::Timeout.service_timeout = 180 #second
+Rack::Timeout.service_timeout = 600 #second
