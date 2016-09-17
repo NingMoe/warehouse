@@ -1,7 +1,7 @@
 = render 'po_receipts/submenu'
 
 - if @complete_scan
-  = form_tag(allocated_po_po_receipts_path, method: 'get') do
+  = form_tag(direct_import_cfm_allocation_po_receipts_path, method: 'get') do
     = hidden_field_tag 'bukrs', params[:bukrs]
     = hidden_field_tag 'impnrs', params[:impnrs]
     = hidden_field_tag 'dpseq', params[:dpseq]
@@ -30,7 +30,7 @@
             - @rows.select{|c| c.menge == c.balqty}.each do |row|
               %tr
                 %td.pull-right
-                  = check_box_tag 'keys', "#{row.matnr}_#{row.lifnr}", true, class: 'checkbox'
+                  = check_box_tag 'keys[]', "#{row.matnr}_#{row.lifnr}", true, class: 'checkbox'
                 %td= row.matnr
                 %td= row.lifnr
                 %td.text-center= row.werks

@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     get :direct_import_scan, on: :collection
     get :direct_import_allocate, on: :collection
     get :direct_import_unallocated, on: :collection
+    get :direct_import_cfm_allocation, on: :collection
     get :barcode, on: :collection
     get :barcode_list, on: :collection
     get :unallocated, on: :collection

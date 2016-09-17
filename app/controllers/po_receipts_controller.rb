@@ -224,6 +224,7 @@ class PoReceiptsController < ApplicationController
       redirect_to direct_import_unallocated_po_receipts_path, notice: '操作錯誤, Wrong Operation'
     else
       PoReceipt.direct_import_cfm_allocation(params)
+      redirect_to direct_import_unallocated_po_receipts_path
     end
   end
 

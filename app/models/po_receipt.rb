@@ -129,7 +129,6 @@ class PoReceipt < ActiveRecord::Base
                 creator: user, updater: user, meins: ziebi002.meins
             )
             ziebi002.status = '20' if ziebi002.balqty == 0
-            ziebi002.updater = user
             ziebi002.save
             break if receipt.balqty == 0
           end
