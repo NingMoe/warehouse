@@ -8,9 +8,15 @@ class PoReceiptsController < ApplicationController
   end
 
   def index
-    @po_receipts = PoReceipt
-                       .where(status: 10, lifnr: params[:lifnr], lifdn: params[:lifdn], werks: params[:werks])
-                       .order(:matnr, :pkg_no)
+    if params[:lifdn].present?
+      @po_receipts = PoReceipt
+                         .where(status: 10, lifnr: params[:lifnr], lifdn: params[:lifdn], werks: params[:werks])
+                         .order(:matnr, :pkg_no)
+    else
+      @po_receipts = PoReceipt
+        .where(status: 10, lifnr: params[:lifnr], matnr: params[:matnr], impnr: params[:impnrs])
+        .order(:pkg_no)
+    end
   end
 
   # GET /po_receipts/1
@@ -291,15 +297,27 @@ class PoReceiptsController < ApplicationController
               and a.werks=? and nvl(b.invnr,' ') = ?
         "
     ids = PoReceipt.find_by_sql([sql, params[:lifnr], params[:lifdn], params[:werks], params[:invnr]])
-    ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
-      alloc_qty = PoReceiptLine.where(uuid: po_receipt_line_ids).sum(:alloc_qty)
-      PoReceiptLine.delete_all(uuid: po_receipt_line_ids)
-      po_receipt = PoReceipt.find po_receipt_id
-      po_receipt.rfc_sts = ' '
-      po_receipt.balqty += alloc_qty
-      po_receipt.alloc_qty -= alloc_qty
-      po_receipt.status = '10'
-      po_receipt.save
+    PoReceipt.transaction do
+      ids.group_by(& :po_receipt_id).each do |po_receipt_id, po_receipt_line_ids|
+        alloc_qty = PoReceiptLine.where(uuid: po_receipt_line_ids).sum(:alloc_qty)
+        po_receipt = PoReceipt.find po_receipt_id
+        if po_receipt.vtype.eql?('V1') #deallocate ziebi002
+          po_receipt_line_ids.each do |po_receipt_line_id|
+            po_receipt_line = PoReceiptLine.find_by(uuid: po_receipt_line_id)
+            ziebi002 = Ziebi002.find_by(impnr: po_receipt_line.impnr, impim: po_receipt_line.impim)
+            ziebi002.alloc_qty -= po_receipt_line.alloc_qty
+            ziebi002.balqty += po_receipt_line.alloc_qty
+            ziebi002.status = 10 if ziebi002.alloc_qty == 0
+            ziebi002.save
+          end
+        end
+        PoReceiptLine.delete_all(uuid: po_receipt_line_ids)
+        po_receipt.rfc_sts = ' '
+        po_receipt.balqty += alloc_qty
+        po_receipt.alloc_qty -= alloc_qty
+        po_receipt.status = '10'
+        po_receipt.save
+      end
     end
     redirect_to allocated_po_po_receipts_path
   end
@@ -312,7 +330,7 @@ class PoReceiptsController < ApplicationController
         group by a.charg,a.matnr,a.date_code,a.lifnr,a.lifdn,a.mfg_date,a.status
         order by a.charg
     "
-     list = PoReceipt.find_by_sql(sql)
+    list = PoReceipt.find_by_sql(sql)
     @po_receipts = Kaminari.paginate_array(list).page(params[:page]).per(50)
   end
 
@@ -320,10 +338,10 @@ class PoReceiptsController < ApplicationController
     @zpl = ''
     params[:keys].each do |key|
       buf = key.split('_')
-      charg =  buf[0]
-      matnr =  buf[1]
-      date_code =  buf[2]
-      counter =  buf[3]
+      charg = buf[0]
+      matnr = buf[1]
+      date_code = buf[2]
+      counter = buf[3]
       PoReceipt.where(charg: buf[0]).update_all(lot_label: 'X')
     end
   end

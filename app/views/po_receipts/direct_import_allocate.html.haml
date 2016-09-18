@@ -18,7 +18,7 @@
         %table.table.table-bordered.table-condensed.small
           %thead
             %tr
-              %th
+              %th{width: '100px'}
               %th= t('material')
               %th= t('supplier')
               %th.text-center= t('plant')
@@ -29,8 +29,10 @@
           %tbody
             - @rows.select{|c| c.menge == c.balqty}.each do |row|
               %tr
-                %td.pull-right
-                  = check_box_tag 'keys[]', "#{row.matnr}_#{row.lifnr}", true, class: 'checkbox'
+                %td
+                  = link_to t('scan_details'), po_receipts_path(lifnr: row.lifnr, impnrs: params[:impnrs], matnr: row.matnr)
+                  .pull-right
+                    = check_box_tag 'keys[]', "#{row.matnr}_#{row.lifnr}", true
                 %td= row.matnr
                 %td= row.lifnr
                 %td.text-center= row.werks
@@ -50,6 +52,7 @@
       %table.table.table-bordered.table-condensed.small
         %thead
           %tr
+            %th{width: '100px'}
             %th= t('material')
             %th= t('supplier')
             %th.text-center= t('plant')
@@ -58,8 +61,10 @@
             %th.text-right= t('alloc_qty')
             %th.text-right= t('bal_qty')
         %tbody
-          - @rows.select{|c| c.menge != c.balqty and c.scanqty > 0}.each do |row|
+          - @rows.select{|c| c.menge != c.balqty and c.scanqty > 0 and c.balqty > 0}.each do |row|
             %tr
+              %td
+                = link_to t('scan_details'), po_receipts_path(lifnr: row.lifnr, impnrs: params[:impnrs], matnr: row.matnr)
               %td= row.matnr
               %td= row.lifnr
               %td.text-center= row.werks
