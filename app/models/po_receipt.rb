@@ -17,11 +17,13 @@ class PoReceipt < ActiveRecord::Base
     contents[:matnr] = buf[1].gsub(' ', '').upcase
     contents[:werks] = buf[2].gsub(' ', '').upcase
     contents[:lifnr] = buf[3].gsub(' ', '').upcase
+    contents[:lifnr] = 'BV-THE BU' if contents[:lifnr].eql?('BV-THEBU')
     contents[:lifdn] = buf[4].gsub(' ', '').upcase
     contents[:date_code] = buf[5].gsub(' ', '')[0..14].upcase
     contents[:mfg_date] = buf[6]
     contents[:menge] = buf[7]
     contents[:pkg_no] = buf[8]
+
 
     return contents[:errors] = '料號錯誤 Material Error' if contents[:matnr].size == 0
     return contents[:errors] = '工廠錯誤 Plant Error' if contents[:werks].size == 0
