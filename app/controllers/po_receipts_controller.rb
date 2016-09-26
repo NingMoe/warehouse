@@ -159,7 +159,7 @@ class PoReceiptsController < ApplicationController
 
   def unallocated
     sql = "
-        select entry_date,lifnr,lifdn,werks,sum(balqty) menge, sum(pkg_no) pkg_no, vtype, impnr
+        select entry_date,lifnr,lifdn,werks,sum(balqty) menge, count(pkg_no) pkg_no, vtype, impnr
           from po_receipt
           where status='10'
             and vtweg='#{params[:vtweg] || current_user.vtweg}'
