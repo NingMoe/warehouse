@@ -92,7 +92,7 @@ class PoReceiptsController < ApplicationController
       select dpseq,impnr,imdat,bukrs
         from sapsr3.ziebi001
         where mandt='168' and #{impnr}
-          and loekz=' ' and imstu in ('2','3')
+          and loekz=' '
         order by dpseq desc,impnr
     "
     @ziebi001s = Sapdb.find_by_sql(sql)
