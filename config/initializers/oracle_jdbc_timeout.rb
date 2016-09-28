@@ -2,7 +2,7 @@ module ActiveRecord
   module ConnectionAdapters
     module OracleEnhanced
       module DatabaseStatements
-        def exec_query(sql, name = 'SQL', binds = [])
+        def exec_query_old(sql, name = 'SQL', binds = [])
           res = []
           begin
             Timeout::timeout(300) do
