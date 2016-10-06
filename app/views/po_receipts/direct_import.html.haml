@@ -8,6 +8,7 @@
     %table.table.table-bordered
       %thead
         %tr
+          %th{width: '100px'}
           %th= t('plant')
           %th= t('import_no')
           %th= t('trip_no')
@@ -17,6 +18,7 @@
           - impnr = []
           - impnrs.each{|row| impnr << row.impnr}
           %tr
+            %td= link_to t('details'), import_order_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
             %td= impnrs.first.bukrs
             %td= link_to impnr.join(','), direct_import_scan_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
             %td= dpseq

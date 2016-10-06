@@ -1,10 +1,15 @@
 Rails.application.routes.draw do
 
 
+  resources :supplier_dns do
+
+  end
+
   resources :po_receipt_msgs
   resources :po_receipts do
     get :home, on: :collection
     get :domestic, on: :collection
+    get :import_order, on: :collection
     get :direct_import, on: :collection
     get :direct_import_scan, on: :collection
     get :direct_import_allocate, on: :collection

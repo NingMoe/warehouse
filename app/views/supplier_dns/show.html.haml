@@ -1,0 +1,42 @@
+%p#notice= notice
+
+%p
+  %b Uuid:
+  = @supplier_dn.uuid
+%p
+  %b Vtweg:
+  = @supplier_dn.vtweg
+%p
+  %b Werks:
+  = @supplier_dn.werks
+%p
+  %b Lifnr:
+  = @supplier_dn.lifnr
+%p
+  %b Lifdn:
+  = @supplier_dn.lifdn
+%p
+  %b Vbeln:
+  = @supplier_dn.vbeln
+%p
+  %b Status:
+  = @supplier_dn.status
+%p
+  %b Vtype:
+  = @supplier_dn.vtype
+%p
+  %b Impnr:
+  = @supplier_dn.impnr
+%p
+  %b Remote ip:
+  = @supplier_dn.remote_ip
+%p
+  %b Creator:
+  = @supplier_dn.creator
+%p
+  %b Updater:
+  = @supplier_dn.updater
+
+= link_to 'Edit', edit_supplier_dn_path(@supplier_dn)
+\|
+= link_to 'Back', supplier_dns_path

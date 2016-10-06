@@ -1,0 +1,58 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      未完入賬明細
+      .tab-1
+        = params[:impnrs]
+  .table-responsive
+    %table.table.table-bordered.table-condensed.small
+      %thead
+        %tr
+          %th= t('material')
+          %th= t('supplier')
+          %th.text-center= t('plant')
+          %th.text-right= t('custom_qty')
+          %th.text-right= t('scan_qty')
+          %th.text-right= t('alloc_qty')
+          %th.text-right= t('bal_qty')
+      %tbody
+        - @rows.select{|c| c.menge != c.balqty and c.balqty != 0}.each do |row|
+          %tr
+            %td= row.matnr
+            %td= row.lifnr
+            %td.text-center= params[:bukrs]
+            %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      已入賬明細
+      .tab-1
+        = params[:impnrs]
+  .table-responsive
+    %table.table.table-bordered.table-condensed.small
+      %thead
+        %tr
+          %th= t('material')
+          %th= t('supplier')
+          %th.text-center= t('plant')
+          %th.text-right= t('custom_qty')
+          %th.text-right= t('scan_qty')
+          %th.text-right= t('alloc_qty')
+          %th.text-right= t('bal_qty')
+      %tbody
+        - @rows.select{|c| c.balqty == 0}.each do |row|
+          %tr
+            %td= row.matnr
+            %td= row.lifnr
+            %td.text-center= params[:bukrs]
+            %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.scanqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.alloc_qty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')

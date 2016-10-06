@@ -1,0 +1,11 @@
+= simple_form_for(@supplier_dn) do |f|
+  =# f.error_notification
+
+  .form-inputs
+    = f.input :vbeln
+    = f.input :lifdn
+    = f.input :impnr
+    = f.input :lifnr
+
+  .form-actions
+    = f.button :submit

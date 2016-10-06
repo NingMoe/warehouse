@@ -1,6 +1,6 @@
 %h5 掃描收料鏈接 Barcode Received Link
 
-.col-xs-12.col-xs-4
+.col-xs-12.col-xs-6
   .panel.panel-default
     .panel-heading
       .panel-title
@@ -10,7 +10,7 @@
       %h5= link_to t('unallocated_list'), unallocated_po_receipts_path
       %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
 
-.col-xs-12.col-xs-4
+.col-xs-12.col-xs-6
   .panel.panel-default
     .panel-heading
       .panel-title
@@ -19,3 +19,11 @@
       %h5= link_to t('scan_receive_label'), direct_import_po_receipts_path
       %h5= link_to t('unallocated_list'), direct_import_unallocated_po_receipts_path
       %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
+
+.col-xs-12.col-xs-6
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        一般STO General STO DN Received
+    .panel-body
+      %h5= link_to t('maintain_sto_dn'), supplier_dns_url

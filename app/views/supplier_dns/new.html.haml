@@ -1,0 +1,30 @@
+= render 'supplier_dns/submenu'
+
+.col-xs-12.col-md-6
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        = t('new_sap_dn')
+    .panel-body
+      = form_for(@supplier_dn) do |f|
+        =# f.error_notification
+
+        .form-group.col-xs-6
+          = f.label :vbeln, 'SAP DN#'
+          = f.text_field :vbeln, class: 'form-control', autofocus: true
+
+        .form-group.col-xs-6
+          = f.label :lifdn, t('dlv_note')
+          = f.text_field :lifdn, class: 'form-control'
+
+        .form-group.col-xs-12
+          = f.label :impnr, t('import_no')
+          = f.text_field :impnr, class: 'form-control'
+
+        = f.hidden_field :creator, value: current_user.email
+        = f.hidden_field :remote_ip, value: request.remote_ip
+        = f.hidden_field :vtype, value: 'STO'
+
+        .form-group.col-xs-12
+          = render 'layouts/submit_button'
+

@@ -1,0 +1,2 @@
+json.extract! supplier_dn, :id, :uuid, :vtweg, :werks, :lifnr, :lifdn, :vbeln, :status, :vtype, :impnr, :remote_ip, :creator, :updater, :created_at, :updated_at
+json.url supplier_dn_url(supplier_dn, format: :json)

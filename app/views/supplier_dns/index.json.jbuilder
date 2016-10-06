@@ -1,0 +1,1 @@
+json.array! @supplier_dns, partial: 'supplier_dns/supplier_dn', as: :supplier_dn

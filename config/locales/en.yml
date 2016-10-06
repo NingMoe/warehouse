@@ -28,6 +28,7 @@ en:
   destroy: '刪除'
   are_you_sure_delete: '確認刪除'
   new_printer: '創建打印機'
+  new_sap_dn: '新建STO DN'
 
   scan_details: '掃描明細'
   unallocated_list: '未分配清單'
@@ -90,6 +91,9 @@ en:
   user_info: '用戶信息'
   printer: '打印機'
   lot_label_printer_id: '批次打印機'
+  maintain_sto_dn: '維護STO DN'
+  sto_dn_received_error: 'SAP DN# 不存在或者對應的STO無料可收'
+  details: '明細'
 
   attributes:
     code: '編碼'

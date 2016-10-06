@@ -76,6 +76,26 @@ class PoReceiptsController < ApplicationController
     end
   end
 
+  def import_order
+    sql = "
+      with
+        tmp1 as (
+          select a.dpseq,a.matnr,a.lifnr,sum(a.menge) menge, sum(a.alloc_qty) alloc_qty, sum(a.balqty) balqty
+            from ziebi002 a
+            where a.bukrs=? and a.dpseq=?
+            group by a.dpseq,a.matnr,a.lifnr),
+        tmp2 as (
+          select a.dpseq,a.matnr,a.lifnr, sum(b.menge) scanqty
+            from tmp1 a
+              join po_receipt b on b.dpseq=a.dpseq and b.matnr=a.matnr and b.lifnr=a.lifnr
+            group by a.dpseq,a.matnr,a.lifnr)
+        select a.matnr,a.lifnr,menge,b.scanqty,a.alloc_qty,a.balqty
+          from tmp1 a
+            join tmp2 b on b.dpseq=a.dpseq and b.matnr=a.matnr and b.lifnr=a.lifnr
+    "
+    @rows = Ziebi002.find_by_sql([sql, params[:bukrs], params[:dpseq]])
+  end
+
   def direct_import
     current_month = Date.today.strftime('%y%m')
     last_month = (Date.today - 1.month).strftime('%y%m')
