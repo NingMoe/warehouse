@@ -92,6 +92,7 @@ class PoReceiptsController < ApplicationController
         select a.matnr,a.lifnr,menge,nvl(b.scanqty,0) scanqty,a.alloc_qty,a.balqty
           from tmp1 a
             left join tmp2 b on b.dpseq=a.dpseq and b.matnr=a.matnr and b.lifnr=a.lifnr
+          order by a.matnr,a.lifnr,menge
     "
     @rows = Ziebi002.find_by_sql([sql, params[:bukrs], params[:dpseq]])
   end
