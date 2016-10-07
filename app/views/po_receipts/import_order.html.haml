@@ -18,7 +18,7 @@
           %th.text-right= t('alloc_qty')
           %th.text-right= t('bal_qty')
       %tbody
-        - @rows.select{|c| c.menge != c.balqty and c.balqty != 0}.each do |row|
+        - @rows.select{|c| c.balqty > 0}.each do |row|
           %tr
             %td= row.matnr
             %td= row.lifnr

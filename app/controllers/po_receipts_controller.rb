@@ -89,7 +89,7 @@ class PoReceiptsController < ApplicationController
             from tmp1 a
               join po_receipt b on b.dpseq=a.dpseq and b.matnr=a.matnr and b.lifnr=a.lifnr
             group by a.dpseq,a.matnr,a.lifnr)
-        select a.matnr,a.lifnr,menge,b.scanqty,a.alloc_qty,a.balqty
+        select a.matnr,a.lifnr,menge,nvl(b.scanqty,0) scanqty,a.alloc_qty,a.balqty
           from tmp1 a
             left join tmp2 b on b.dpseq=a.dpseq and b.matnr=a.matnr and b.lifnr=a.lifnr
     "
@@ -99,7 +99,9 @@ class PoReceiptsController < ApplicationController
   def combine_import_order
     impnrs = []
     if params[:impnrs].present?
-      params[:impnrs].each { |e| impnrs = impnrs + e.split(',') }
+      params[:impnrs].each { |e|
+        impnrs = impnrs + e.split(',')
+      }
       sql = "select impnr,dpseq,bukrs from sapsr3.ziebi001 where mandt='168' and impnr in (?) order by dpseq"
       rows = Sapdb.find_by_sql([sql, impnrs])
       dpseq = rows.first.dpseq
@@ -109,6 +111,7 @@ class PoReceiptsController < ApplicationController
           attributes = {DPSEQ: dpseq}
           SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, 2)
           PoReceipt.where(bukrs: row.bukrs, dpseq: row.dpseq, impnr: impnrs.join(',')).update_all(dpseq: dpseq)
+          Ziebi002.where(impnr: row.impnr).update_all(dpseq: dpseq)
         end
       end
     end
