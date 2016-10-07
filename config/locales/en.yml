@@ -25,6 +25,7 @@ en:
   edit: '編輯'
   submit: '提交'
   save: '保存'
+  combine: '合拼'
   destroy: '刪除'
   are_you_sure_delete: '確認刪除'
   new_printer: '創建打印機'

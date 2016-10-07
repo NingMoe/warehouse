@@ -22,6 +22,7 @@
           = f.text_field :impnr, class: 'form-control'
 
         = f.hidden_field :creator, value: current_user.email
+        = f.hidden_field :updater, value: current_user.email
         = f.hidden_field :remote_ip, value: request.remote_ip
         = f.hidden_field :vtype, value: 'STO'
 

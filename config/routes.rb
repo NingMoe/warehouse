@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     get :home, on: :collection
     get :domestic, on: :collection
     get :import_order, on: :collection
+    get :combine_import_order, on: :collection
     get :direct_import, on: :collection
     get :direct_import_scan, on: :collection
     get :direct_import_allocate, on: :collection

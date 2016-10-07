@@ -14,8 +14,8 @@ class PoReceiptsController < ApplicationController
                          .order(:matnr, :pkg_no)
     else
       @po_receipts = PoReceipt
-        .where(status: 10, lifnr: params[:lifnr], matnr: params[:matnr], impnr: params[:impnrs])
-        .order(:pkg_no)
+                         .where(status: 10, lifnr: params[:lifnr], matnr: params[:matnr], impnr: params[:impnrs])
+                         .order(:pkg_no)
     end
   end
 
@@ -96,6 +96,25 @@ class PoReceiptsController < ApplicationController
     @rows = Ziebi002.find_by_sql([sql, params[:bukrs], params[:dpseq]])
   end
 
+  def combine_import_order
+    impnrs = []
+    if params[:impnrs].present?
+      params[:impnrs].each { |e| impnrs = impnrs + e.split(',') }
+      sql = "select impnr,dpseq,bukrs from sapsr3.ziebi001 where mandt='168' and impnr in (?) order by dpseq"
+      rows = Sapdb.find_by_sql([sql, impnrs])
+      dpseq = rows.first.dpseq
+      rows.each do |row|
+        SapSe16n.transaction do
+          selections = {IMPNR: row.impnr}
+          attributes = {DPSEQ: dpseq}
+          SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, 2)
+          PoReceipt.where(bukrs: row.bukrs, dpseq: row.dpseq, impnr: impnrs.join(',')).update_all(dpseq: dpseq)
+        end
+      end
+    end
+    redirect_to direct_import_po_receipts_path
+  end
+
   def direct_import
     current_month = Date.today.strftime('%y%m')
     last_month = (Date.today - 1.month).strftime('%y%m')
@@ -119,9 +138,15 @@ class PoReceiptsController < ApplicationController
   end
 
   def direct_import_scan
-    if Ziebi002.find_by_bukrs_and_dpseq(params[:bukrs], params[:dpseq]).blank?
-      Ziebi002.create_record_from_sap(params[:impnrs].split(','))
+    params[:impnrs].split(',').each do |impnr|
+      if Ziebi002.find_by(impnr: impnr).blank?
+        Ziebi002.create_record_from_sap(impnr)
+      end
     end
+
+    # if Ziebi002.find_by_bukrs_and_dpseq(params[:bukrs], params[:dpseq]).blank?
+    #   Ziebi002.create_record_from_sap(params[:impnrs].split(','))
+    # end
   end
 
   def domestic

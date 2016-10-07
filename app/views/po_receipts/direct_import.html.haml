@@ -4,22 +4,28 @@
   .panel-heading
     .panel-title
       直接保稅進口收貨
-  .table-responsive
-    %table.table.table-bordered
-      %thead
-        %tr
-          %th{width: '100px'}
-          %th= t('plant')
-          %th= t('import_no')
-          %th= t('trip_no')
-          %th= t('doc_date')
-      %tbody
-        - @ziebi001s.group_by(& :dpseq).each do |dpseq, impnrs|
-          - impnr = []
-          - impnrs.each{|row| impnr << row.impnr}
+
+  = form_tag(combine_import_order_po_receipts_path, method: 'get') do
+    .table-responsive
+      %table.table.table-bordered
+        %thead
           %tr
-            %td= link_to t('details'), import_order_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
-            %td= impnrs.first.bukrs
-            %td= link_to impnr.join(','), direct_import_scan_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
-            %td= dpseq
-            %td= impnrs.first.imdat
+            %th{colspan: 2}
+              = render 'layouts/combine_button'
+            %th= t('plant')
+            %th= t('import_no')
+            %th= t('trip_no')
+            %th= t('doc_date')
+        %tbody
+          - @ziebi001s.group_by(& :dpseq).each do |dpseq, impnrs|
+            - impnr = []
+            - impnrs.each{|row| impnr << row.impnr}
+            %tr
+              %td.text-center{width: '30px'}
+                = check_box_tag('impnrs[]', impnr.join(','))
+              %td{width: '30px'}
+                = link_to t('details'), import_order_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
+              %td= impnrs.first.bukrs
+              %td= link_to impnr.join(','), direct_import_scan_po_receipts_path(impnrs: impnr.join(','),bukrs:impnrs.first.bukrs,dpseq:dpseq)
+              %td= dpseq
+              %td= impnrs.first.imdat

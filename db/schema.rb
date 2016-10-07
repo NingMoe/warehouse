@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160929080820) do
+ActiveRecord::Schema.define(version: 20161006084322) do
 
   create_table "barcode", id: false, force: :cascade do |t|
     t.string   "uuid",                           null: false
@@ -75,6 +75,9 @@ ActiveRecord::Schema.define(version: 20160929080820) do
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "supplier_dn" because of following Java::JavaLangInvoke::WrongMethodTypeException
+#   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
+
+# Could not dump table "supplier_dn_line" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "user" because of following Java::JavaLangInvoke::WrongMethodTypeException
