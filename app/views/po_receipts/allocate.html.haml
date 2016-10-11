@@ -57,7 +57,7 @@
             %th.text-right= t('alloc_qty')
         %tbody
           - @pos.each do |key, value|
-            = hidden_field_tag "po_#{value[:matnr]}_#{key}", "#{value[:alcqty]}_#{value[:netpr]}_#{value[:peinh]}_#{value[:meins]}"
+            = hidden_field_tag "po|#{value[:matnr]}|#{key}", "#{value[:alcqty]}|#{value[:netpr]}|#{value[:peinh]}|#{value[:meins]}"
             %tr
               %td= value[:matnr]
               %td= key

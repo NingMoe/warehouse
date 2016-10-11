@@ -27,7 +27,7 @@ class SupplierDnsController < ApplicationController
     @supplier_dn = SupplierDn.new(supplier_dn_params)
 
     respond_to do |format|
-      if @supplier_dn.save
+      if @supplier_dn.create_sto
         format.html { redirect_to @supplier_dn, notice: 'Supplier dn was successfully created.' }
         format.json { render :show, status: :created, location: @supplier_dn }
       else

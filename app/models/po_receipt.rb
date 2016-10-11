@@ -146,9 +146,9 @@ class PoReceipt < ActiveRecord::Base
     mats = {}
     params.each do |key, value|
       if key[0..1].eql?('po')
-        buf = key.split('_')
+        buf = key.split('|')
         mats[buf[1]] = [] unless mats.key?(buf[1])
-        value_buf = value.split('_')
+        value_buf = value.split('|')
         array = mats[buf[1]]
         array << {ebeln: buf[2], balqty: BigDecimal(value_buf[0]), alcqty: 0, netpr: BigDecimal(value_buf[1]), peinh: BigDecimal(value_buf[2]), meins: value_buf[3]}
       end
