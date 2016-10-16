@@ -95,6 +95,15 @@ en:
   maintain_sto_dn: '維護STO DN'
   sto_dn_received_error: 'SAP DN# 不存在或者對應的STO無料可收'
   details: '明細'
+  territory: '區域'
+  maintain_package_qty: '維護包裝數量'
+  total_box: '總箱數'
+  qty_per_box: '每箱數量'
+  display_dn_line: 'DN 清單明細'
+  split_box: '拆箱'
+  split_box_detail: '拆箱明細'
+  total_qty: ' 總體數量'
+  confirm_last_box: '確認尾箱數'
 
   attributes:
     code: '編碼'

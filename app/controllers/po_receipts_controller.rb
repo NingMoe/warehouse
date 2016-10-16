@@ -258,7 +258,7 @@ class PoReceiptsController < ApplicationController
                nvl(b.menge,0) scanqty, nvl(b.alloc_qty,0) alloc_qty, nvl(b.balqty,0) balqty
           from tmpa a
             left join tmpb b on b.matnr=a.matnr and b.lifnr=a.lifnr and b.werks=a.werks
-        order by a.matnr
+        order by a.lifnr,a.matnr
     "
     @rows = Ziebi002.find_by_sql(sql)
     @complete_scan = false

@@ -19,7 +19,7 @@
 
         .form-group.col-xs-12
           = f.label :impnr, t('import_no')
-          = f.text_field :impnr, class: 'form-control'
+          = f.select :impnr, Ziebi002.import_order_list(current_user.vtweg), include_blank: true, class: 'form-control'
 
         = f.hidden_field :creator, value: current_user.email
         = f.hidden_field :updater, value: current_user.email

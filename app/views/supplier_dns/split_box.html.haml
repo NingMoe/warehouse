@@ -1,0 +1,126 @@
+= render 'supplier_dns/submenu'
+
+= form_tag(confirm_split_box_supplier_dns_url, method: 'post') do
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        = @supplier_dn_line.supplier_dn.vbeln
+        .tab-1
+    .table-responsive
+      %table.table.table-bordered
+        %thead
+          %tr
+            %th= t('line')
+            %th= t('material')
+            %th= t('pur_ord')
+            %th= t('lot')
+            %th= t('total_box')
+            %th= t('qty_per_box')
+            %th= t('dlv_qty')
+            %th= t('unit')
+            %th= t('date_code')
+            %th= t('mfg_date')
+        %tbody
+          %tr
+            %td.text-right= @supplier_dn_line.seq
+            %td= @supplier_dn_line.matnr
+            %td= "#{@supplier_dn_line.ebeln}.#{@supplier_dn_line.ebelp}"
+            %td= @supplier_dn_line.charg
+            %td.text-right= @supplier_dn_line.total_box
+            %td.text-right= number_with_precision(@supplier_dn_line.qty_per_box, precision: 12, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(@supplier_dn_line.total_qty, precision: 12, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td= @supplier_dn_line.meins
+            %td= @supplier_dn_line.date_code
+            %td= @supplier_dn_line.mfg_date
+    .panel-body
+      .panel-title
+        = t'split_box_detail'
+        %span#submit_div
+          = render 'layouts/submit_button'
+        .pull-right
+          %a#confirm_last_box
+            = t('confirm_last_box')
+          = text_field_tag 'bal_qty', number_with_precision(@supplier_dn_line.total_qty, precision: 12, significant: true, strip_insignificant_zeros: true, delimiter: ''), disabled: true
+          = hidden_field_tag 'qty', @supplier_dn_line.total_qty
+          = hidden_field_tag 'uuid', @supplier_dn_line.uuid
+
+    %table.table.table-bordered
+      %thead
+        %tr
+          %th= t('line')
+          %th= t('qty_per_box')
+          %th= t('unit')
+          %th= t('total_box')
+          %th= t('total_qty')
+      %tbody
+        - (1..6).each do |i|
+          %tr
+            %td.text-center= i
+            %td= text_field_tag "#{i}_qty_per_box", '', class: 'form-control form-field'
+            %td= @supplier_dn_line.meins
+            %td= text_field_tag "#{i}_total_box", '', class: 'form-control form-field'
+            %td= text_field_tag "#{i}_total_qty", '', class: 'form-control', readonly: true
+
+:javascript
+  function last_box(){
+    for (i = 1; i < 7; i++) {
+      if (($("#"+i+"_qty_per_box").val() == '') && ($("#"+i+"_total_box").val() == '')){
+        $("#"+i+"_qty_per_box").val($('#bal_qty').val());
+        $("#"+i+"_total_box").val(1);
+        $('#bal_qty').val(0);
+        break;
+      }
+    }
+    calculate();
+  }
+
+  function calculate(){
+    alloc_qty = 0;
+    qty = parseFloat($('#qty').val());
+    for (i = 1; i < 7; i++) {
+      total_qty = 0;
+      qty_per_box = $("#"+i+"_qty_per_box").val();
+      total_box = $("#"+i+"_total_box").val();
+
+      if ((qty_per_box != '') && (total_box != '')){
+        total_qty = parseFloat(qty_per_box) * parseFloat(total_box);
+      }
+      $("#"+i+"_total_qty").val(total_qty);
+      alloc_qty += total_qty;
+    }
+    $('#bal_qty').val(qty - alloc_qty);
+
+    if ((qty - alloc_qty) == 0){
+      $('#submit_div').show();
+    }
+    else{
+      $('#submit_div').hide();
+    }
+
+    for (i = 1; i < 7; i++) {
+      if ($("#"+i+"_qty_per_box").val() == ''){
+        $("#"+i+"_qty_per_box").focus();
+        break;
+      }
+      if ($("#"+i+"_total_box").val() == ''){
+        $("#"+i+"_total_box").focus();
+        break;
+      }
+    }
+  };
+
+  $(document).ready(function () {
+    $('#submit_div').hide();
+    $('.form-field').change(function(){
+      if ($.isNumeric(this.value) == false){
+        this.value = '';
+      }
+      calculate();
+    });
+
+    $('#confirm_last_box').click(function(){
+      last_box();
+    });
+
+  })
+

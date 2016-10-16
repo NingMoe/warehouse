@@ -1,0 +1,38 @@
+= render 'supplier_dns/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      = @supplier_dn.vbeln
+      .tab-1
+      = t('display_dn_line')
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th
+          %th= t('line')
+          %th= t('material')
+          %th= t('pur_ord')
+          %th= t('lot')
+          %th= t('total_box')
+          %th= t('qty_per_box')
+          %th= t('dlv_qty')
+          %th= t('unit')
+          %th= t('date_code')
+          %th= t('mfg_date')
+
+      %tbody
+        - @supplier_dn.supplier_dn_lines.each do |row|
+          %tr
+            %td= link_to t('split_box'), split_box_supplier_dns_url(uuid: row.uuid)
+            %td.text-right= row.seq
+            %td= row.matnr
+            %td= "#{row.ebeln}.#{row.ebelp}"
+            %td= row.charg
+            %td.text-right= row.total_box
+            %td.text-right= number_with_precision(row.qty_per_box, precision: 12, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td.text-right= number_with_precision(row.total_qty, precision: 12, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+            %td= row.meins
+            %td= row.date_code
+            %td= row.mfg_date

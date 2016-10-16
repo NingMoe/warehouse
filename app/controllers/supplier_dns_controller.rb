@@ -61,6 +61,21 @@ class SupplierDnsController < ApplicationController
     end
   end
 
+  def display_dn_line
+    @supplier_dn = SupplierDn.find_by(uuid: params[:uuid])
+  end
+
+  def split_box
+    @supplier_dn_line = SupplierDnLine.find_by(uuid: params[:uuid])
+  end
+
+  def confirm_split_box
+    @supplier_dn_line = SupplierDnLine.find_by(uuid: params[:uuid])
+    @supplier_dn_line.updater = current_user.email
+    @supplier_dn_line.split_box(params)
+    redirect_to display_dn_line_supplier_dns_url(uuid: @supplier_dn_line.supplier_dn_id)
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_supplier_dn

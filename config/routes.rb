@@ -2,7 +2,9 @@ Rails.application.routes.draw do
 
 
   resources :supplier_dns do
-
+    get :display_dn_line, on: :collection
+    get :split_box, on: :collection
+    post :confirm_split_box, on: :collection
   end
 
   resources :po_receipt_msgs

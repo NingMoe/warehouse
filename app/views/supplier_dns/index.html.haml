@@ -1,43 +1,35 @@
 = render 'supplier_dns/submenu'
 
-%table
-  %thead
-    %tr
-      %th Uuid
-      %th Vtweg
-      %th Werks
-      %th Lifnr
-      %th Lifdn
-      %th Vbeln
-      %th Status
-      %th Vtype
-      %th Impnr
-      %th Remote ip
-      %th Creator
-      %th Updater
-      %th
-      %th
-      %th
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      STO/DN
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th
+          %th= t('territory')
+          %th SAP DN
+          %th= t('factory_location')
+          %th= t('supplier')
+          %th= t('dlv_note')
+          %th= t('status')
+          %th= t('type')
+          %th= t('import_no')
 
-  %tbody
-    - @supplier_dns.each do |supplier_dn|
-      %tr
-        %td= supplier_dn.uuid
-        %td= supplier_dn.vtweg
-        %td= supplier_dn.werks
-        %td= supplier_dn.lifnr
-        %td= supplier_dn.lifdn
-        %td= supplier_dn.vbeln
-        %td= supplier_dn.status
-        %td= supplier_dn.vtype
-        %td= supplier_dn.impnr
-        %td= supplier_dn.remote_ip
-        %td= supplier_dn.creator
-        %td= supplier_dn.updater
-        %td= link_to 'Show', supplier_dn
-        %td= link_to 'Edit', edit_supplier_dn_path(supplier_dn)
-        %td= link_to 'Destroy', supplier_dn, :method => :delete, :data => { :confirm => 'Are you sure?' }
-
-%br
-
-= link_to 'New Supplier dn', new_supplier_dn_path
+      %tbody
+        - @supplier_dns.each do |supplier_dn|
+          %tr
+            %td
+              = link_to t('destroy'), supplier_dn, :method => :delete, :data => { :confirm => 'Are you sure?' }
+              .tab-1
+              = link_to t('display_dn_line'), display_dn_line_supplier_dns_url(uuid: supplier_dn.uuid)
+            %td= supplier_dn.vtweg
+            %td= supplier_dn.vbeln
+            %td= supplier_dn.werks
+            %td= supplier_dn.lifnr
+            %td= supplier_dn.lifdn
+            %td= supplier_dn.status
+            %td= supplier_dn.vtype
+            %td= supplier_dn.impnr

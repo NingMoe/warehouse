@@ -35,4 +35,33 @@ class Ziebi002 < ActiveRecord::Base
     end
   end
 
+  def self.import_order_list(vtweg)
+    current_month = Date.today.strftime('%y%m')
+    last_month = (Date.today - 1.month).strftime('%y%m')
+    if vtweg.present?
+      if vtweg.eql?('TX')
+        impnr = "(impnr between 'ITX#{last_month}' and 'ITX#{current_month}Z')"
+      else
+        impnr = "(impnr between 'DIM#{last_month}' and 'DIM#{current_month}Z')"
+      end
+    else
+      impnr = "((impnr between 'ITX#{last_month}' and 'ITX#{current_month}Z') or (impnr between 'DIM#{last_month}' and 'DIM#{current_month}Z'))"
+    end
+    sql = "
+      select dpseq,impnr
+        from sapsr3.ziebi001
+        where mandt='168' and #{impnr}
+          and loekz=' '
+        order by dpseq desc,impnr
+    "
+    rows = Sapdb.find_by_sql(sql)
+    array = []
+    rows.group_by(& :dpseq).each do |dpseq, impnrs|
+      impnr = []
+      impnrs.each{|row| impnr << row.impnr}
+      array << [impnr.join(','), "#{dpseq}|#{impnr.join(',')}"]
+    end
+    array
+  end
+
 end
