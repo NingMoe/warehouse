@@ -266,7 +266,7 @@ class PoReceiptsController < ApplicationController
     @not_scan = false
     @allocated = false
     @rows.each do |row|
-      @complete_scan = true if row.menge == row.balqty
+      @complete_scan = true if (row.menge == row.balqty or (row.menge == (row.alloc_qty + row.balqty) and row.balqty > 0))
       @incomplete_scan = true if row.menge != row.balqty and row.scanqty > 0
       @not_scan = true if row.scanqty == 0
       @allocated = true if row.menge == row.alloc_qty

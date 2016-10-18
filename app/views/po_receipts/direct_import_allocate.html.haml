@@ -27,7 +27,7 @@
               %th.text-right= t('alloc_qty')
               %th.text-right= t('bal_qty')
           %tbody
-            - @rows.select{|c| c.menge == c.balqty}.each do |row|
+            - @rows.select{|c| (c.menge == c.balqty) or (c.menge == c.alloc_qty + c.balqty and c.balqty > 0)}.each do |row|
               %tr
                 %td
                   = link_to t('scan_details'), po_receipts_path(lifnr: row.lifnr, impnrs: params[:impnrs], matnr: row.matnr)
