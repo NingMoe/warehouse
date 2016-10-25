@@ -156,8 +156,13 @@ class PoReceipt < ActiveRecord::Base
     invalid_vtypes = %w[V1 V4]
     tmpb.each do |pol|
       matnr_pol = matnr_hash[pol.matnr]
-      opnqty = (pol.bstae.eql?(' ') or pol.ekes >= pol.eket ? pol.eket : pol.ekes)
-
+      if pol.bstae.blank?
+        opnqty = pol.eket || 0
+      elsif pol.ekes >= pol.eket
+        opnqty = pol.eket || 0
+      else
+        opnqty = pol.ekes || 0
+      end
       #xalcqty = PoReceiptLine.where(status: '20', ebeln: pol.ebeln, ebelp: pol.ebelp).sum(:alloc_qty)
       pol_key = "#{pol.ebeln}.#{pol.ebelp}"
       xalcqty = po_receipt_line_hash[pol_key] || 0
