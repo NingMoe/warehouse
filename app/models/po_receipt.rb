@@ -34,7 +34,7 @@ class PoReceipt < ActiveRecord::Base
     contents
   end
 
-  def self.allocate_po(lifnr, lifdn, werks)
+  def self.allocate_po_old(lifnr, lifdn, werks)
     sql = "
       with
         tmpa as (
@@ -86,6 +86,95 @@ class PoReceipt < ActiveRecord::Base
             po[:alcqty] += (pol.opnqty - pol.xalcqty)
             mat[:balqty] -= (pol.opnqty - pol.xalcqty)
             mat[:alcqty] += (pol.opnqty - pol.xalcqty)
+          else
+            po[:alcqty] += mat[:balqty]
+            mat[:alcqty] += mat[:balqty]
+            mat[:balqty] -= mat[:balqty]
+          end
+        end
+      end
+    end
+    return mats, pos
+    # [{"1501005620000"=>{:balqty=>#<BigDecimal:984de01,'0.0',1(4)>, :alcqty=>#<BigDecimal:58cda03f,'23436.0',5(12)>, :opnqty=>45944, :xalcqty=>0}},
+    #                         {"8001232172.00240"=>{:alcqty=>9682, :matnr=>"1501005620000"},
+    #                          "8001233769.00130"=>{:alcqty=>7500, :matnr=>"1501005620000"},
+    #                          "8001233769.00140"=>{:alcqty=>900, :matnr=>"1501005620000"},
+    #                          "8001234069.00110"=>{:alcqty=>5100, :matnr=>"1501005620000"},
+    #                          "8001235791.00070"=>{:alcqty=>#<BigDecimal:71ad959b,'254.0',3(12)>, :matnr=>"1501005620000"}}]
+  end
+
+
+  def self.allocate_po(lifnr, lifdn, werks)
+    sql = "
+      select matnr,sum(balqty)balqty, count(matnr)pkgqty
+              from po_receipt a
+              where a.status='10' and lifnr='#{lifnr}' and lifdn='#{lifdn}' and werks='#{werks}'
+              group by matnr
+    "
+    tmpa = PoReceipt.find_by_sql(sql)
+    matnr_hash = {}
+    tmpa.each do |row|
+      matnr_hash[row.matnr] = row
+    end
+
+    sql = "
+          select
+            c.matnr,b.bedat,c.ebeln,c.ebelp,c.bstae,d.parvw,c.netpr,c.peinh,c.meins,
+            (select nvl(sum(menge-wemng),0) from sapsr3.eket x where x.mandt='168' and x.ebeln=c.ebeln and x.ebelp= c.ebelp) eket,
+            (select nvl(sum(menge-dabmg),0) from sapsr3.ekes y where y.mandt='168' and y.ebeln=c.ebeln and y.ebelp= c.ebelp) ekes
+          from sapsr3.ekpo c
+              join sapsr3.ekko b on b.mandt='168' and b.lifnr='#{lifnr}' and b.bsart not in ('Z006','Z007','Z008')
+              left join sapsr3.ekpa d on d.mandt='168' and d.ebeln=b.ebeln and d.ebelp='00000' and d.parza='001' and substr(d.parvw,1,1)='V'
+          where c.mandt='168' and c.ebeln=b.ebeln and c.loekz=' ' and c.elikz=' ' and c.matnr in (?) and c.werks='#{werks}'
+
+    "
+    tmpb = Sapdb.find_by_sql([sql, matnr_hash.keys])
+    po_receipt_line_hash = {}
+    po_line_array = []
+    i = 0
+    tmpb.each do |row|
+      i += 1
+      po_line_array.append "('#{row.ebeln}','#{row.ebelp}')"
+      if i == tmpb.size or po_line_array.size > 900
+        sql = "
+          select ebeln,ebelp, sum(alloc_qty) xalcqty
+            from po_receipt_line
+            where status='20' and (ebeln,ebelp) in (#{po_line_array.join(',')})
+          group by ebeln,ebelp
+        "
+        rows = PoReceiptLine.find_by_sql(sql)
+        rows.each do |row|
+          pol_key = "#{row.ebeln}.#{row.ebelp}"
+          po_receipt_line_hash[pol_key] = row.xalcqty
+        end
+        po_line_array.clear
+      end
+    end
+
+    mats = {}
+    pos = {}
+    invalid_vtypes = %w[V1 V4]
+    tmpb.each do |pol|
+      matnr_pol = matnr_hash[pol.matnr]
+      opnqty = (pol.bstae.eql?(' ') or pol.ekes >= pol.eket ? pol.eket : pol.ekes)
+
+      #xalcqty = PoReceiptLine.where(status: '20', ebeln: pol.ebeln, ebelp: pol.ebelp).sum(:alloc_qty)
+      pol_key = "#{pol.ebeln}.#{pol.ebelp}"
+      xalcqty = po_receipt_line_hash[pol_key] || 0
+
+      mats[pol.matnr] = {balqty: matnr_pol.balqty, alcqty: 0, opnqty: 0, xalcqty: 0, pkgqty: matnr_pol.pkgqty} unless mats.key?(pol.matnr)
+      mat = mats[pol.matnr]
+      if not invalid_vtypes.include?(pol.parvw)
+        mat[:opnqty] += opnqty
+        mat[:xalcqty] += xalcqty
+        if mat[:balqty] > 0 and (opnqty - xalcqty) > 0
+
+          pos[pol_key] = {alcqty: 0, matnr: pol.matnr, netpr: pol.netpr, peinh: pol.peinh, meins: pol.meins} unless pos.key?(pol_key)
+          po = pos[pol_key]
+          if mat[:balqty] > (opnqty - xalcqty)
+            po[:alcqty] += (opnqty - xalcqty)
+            mat[:balqty] -= (opnqty - xalcqty)
+            mat[:alcqty] += (opnqty - xalcqty)
           else
             po[:alcqty] += mat[:balqty]
             mat[:alcqty] += mat[:balqty]
