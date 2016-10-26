@@ -113,8 +113,10 @@ class PoReceipt < ActiveRecord::Base
     "
     tmpa = PoReceipt.find_by_sql(sql)
     matnr_hash = {}
+    mats = {}
     tmpa.each do |row|
       matnr_hash[row.matnr] = row
+      mats[row.matnr] = {balqty: row.balqty, alcqty: 0, opnqty: 0, xalcqty: 0, pkgqty: row.pkgqty}
     end
 
     sql = "
@@ -151,11 +153,9 @@ class PoReceipt < ActiveRecord::Base
       end
     end
 
-    mats = {}
     pos = {}
     invalid_vtypes = %w[V1 V4]
     tmpb.each do |pol|
-      matnr_pol = matnr_hash[pol.matnr]
       if pol.bstae.blank?
         opnqty = pol.eket || 0
       elsif pol.ekes >= pol.eket
@@ -167,13 +167,11 @@ class PoReceipt < ActiveRecord::Base
       pol_key = "#{pol.ebeln}.#{pol.ebelp}"
       xalcqty = po_receipt_line_hash[pol_key] || 0
 
-      mats[pol.matnr] = {balqty: matnr_pol.balqty, alcqty: 0, opnqty: 0, xalcqty: 0, pkgqty: matnr_pol.pkgqty} unless mats.key?(pol.matnr)
       mat = mats[pol.matnr]
       if not invalid_vtypes.include?(pol.parvw)
         mat[:opnqty] += opnqty
         mat[:xalcqty] += xalcqty
         if mat[:balqty] > 0 and (opnqty - xalcqty) > 0
-
           pos[pol_key] = {alcqty: 0, matnr: pol.matnr, netpr: pol.netpr, peinh: pol.peinh, meins: pol.meins} unless pos.key?(pol_key)
           po = pos[pol_key]
           if mat[:balqty] > (opnqty - xalcqty)
