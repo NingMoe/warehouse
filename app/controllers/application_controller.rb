@@ -8,10 +8,10 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
 
-  rescue_from Timeout::Error, with: :handle_timeout
+  rescue_from 'Java::JavaSql::SQLTimeoutException', with: :handle_timeout
 
-  def handle_timeout
-    render :text => exception, :status => 500
+  def handle_timeout(exception)
+    redirect_to root_url(time_out: exception)
   end
 
 end

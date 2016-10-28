@@ -4,7 +4,7 @@ class PoReceiptsController < ApplicationController
   # GET /po_receipts
   # GET /po_receipts.json
   def home
-
+    #sleep(60)
   end
 
   def index
