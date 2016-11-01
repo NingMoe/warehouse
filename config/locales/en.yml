@@ -93,6 +93,7 @@ en:
   printer: '打印機'
   lot_label_printer_id: '批次打印機'
   maintain_sto_dn: '維護STO DN'
+  maintain_sto: '維護STO'
   sto_dn_received_error: 'SAP DN# 不存在或者對應的STO無料可收'
   details: '明細'
   territory: '區域'
@@ -104,6 +105,14 @@ en:
   split_box_detail: '拆箱明細'
   total_qty: ' 總體數量'
   confirm_last_box: '確認尾箱數'
+  new_sto_entry: '輸入STO記錄'
+  dlv_date: '送貨日'
+  on_hand_qty: '庫存數'
+  rcv_addr: '收貨地'
+  dlv_addr: '發貨地'
+  cmtqty: '承諾數'
+  wait_dn_create: '待建立SAP DN清單'
+
 
   attributes:
     code: '編碼'

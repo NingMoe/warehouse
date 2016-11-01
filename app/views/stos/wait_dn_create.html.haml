@@ -1,0 +1,61 @@
+= render 'stos/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      待建立SAP DN清單 / Wait for DN Creation List
+  .panel-body
+    = form_tag(wait_dn_create_stos_path, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .row
+        .form-group.col-xs-12.col-sm-2
+          %label{for: 'vtweg'}= t('factory_location')
+          = select_tag 'vtweg', options_for_select(%w[DT TX PH], params[:vtweg] || current_user.vtweg), class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'ebeln'}STO
+          = text_field_tag 'ebeln', params[:ebeln], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'matnr'}料號 / material
+          = text_field_tag 'matnr', params[:matnr], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'werks'}發貨地 / deliver plant
+          = text_field_tag 'werks', params[:werks], class: 'form-control'
+      .row
+        .form-group.col-xs-3
+          = render 'layouts/search_button'
+          .tab-2
+            = link_to '返回 Back', :back
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th
+          %th STO
+          %th= t('dlv_addr')
+          %th= t('material')
+          %th.text-right= t('dlv_qty')
+          %th= t('unit')
+          %th= t('supplier')
+          %th= t('rcv_addr')
+          %th= t('status')
+      %tbody
+        - @stos.group_by(& :rfc_batch_id).each do |rfc_batch_id, rows|
+          - rows.each do |sto|
+            %tr
+              %td= link_to t('destroy'), sto, :method => :delete, :data => { :confirm => I18n.t('are_you_sure_delete') }
+              %td= "#{sto.ebeln}.#{sto.ebelp}"
+              %td= sto.werks_from
+              %td= sto.matnr
+              %td.text-right= number_with_precision(sto.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td= sto.meins
+              %td= sto.lifnr
+              %td= sto.werks_to
+              %td= sto.rfc_msg_type
+          - if rows.first.rfc_msg_type.present? or true
+            %tr.warning
+              %td{colspan: 9}
+                = rows.first.uuid
+

@@ -283,6 +283,8 @@ class PoReceipt < ActiveRecord::Base
   def self.vtweg(werks)
     if werks.eql?('111A') or werks.eql?('112A')
       'PH'
+    elsif werks.eql?('101A')
+      'TP'
     elsif werks.eql?('481A') or werks.eql?('482A')
       'DT'
     else

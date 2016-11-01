@@ -23,7 +23,8 @@
           %th.text-right= t('po_qty')
           %th.text-right= t('xalloc_qty')
       %tbody
-        - @mats.each do |key, value|
+        - @mats.keys.sort.each do |key|
+          - value = @mats[key]
           - allow_sbm = false if value[:balqty] > 0
           %tr{class: value[:balqty] > 0 ? 'danger' : ''}
             %td

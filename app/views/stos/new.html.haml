@@ -1,0 +1,68 @@
+= render 'stos/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      新建STO記錄 / Create STO
+  .panel-body
+    = form_tag(new_sto_path, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .row
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'ebeln'}STO
+          = text_field_tag 'ebeln', params[:ebeln], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'ebelp'}項號 / Line
+          = text_field_tag 'ebelp', params[:ebelp], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'matnr'}料號 / material
+          = text_field_tag 'matnr', params[:matnr], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'werks'}發貨地 / deliver plant
+          = text_field_tag 'werks', params[:werks], class: 'form-control'
+      .row
+        .form-group.col-xs-3
+          = render 'layouts/search_button'
+          .tab-2
+            = link_to '返回 Back', :back
+
+- if params[:sbm]
+  = form_tag('/stos', method: 'post') do
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          = render "layouts/submit_button"
+          查找結果 / Search Result
+      .table-responsive
+        %table.table.table-bordered.table-condensed
+          %thead
+            %tr
+              %th
+              %th STO
+              %th= t('dlv_addr')
+              %th= t('material')
+              %th= t('doc_date')
+              %th.text-right= t('bal_qty')
+              %th= t('dlv_qty')
+              %th.text-right= t('cmtqty')
+              %th= t('unit')
+              %th= t('supplier')
+              %th= t('rcv_addr')
+          %tbody
+            - @open_stos.each do |row|
+              %tr
+                %td
+                %td= "#{row.ebeln}.#{row.ebelp}"
+                %td= row.reswk
+                %td= row.matnr
+                %td= row.bedat
+                %td.text-right= number_with_precision(row.balqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+                %td
+                  = text_field_tag "qty_#{row.ebeln}.#{row.ebelp}", row.cmtqty
+                %td.text-right= number_with_precision(row.cmtqty, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+                %td= row.meins
+                %td= row.lifnr
+                %td= row.werks

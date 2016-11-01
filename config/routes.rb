@@ -1,5 +1,8 @@
 Rails.application.routes.draw do
 
+  resources :stos do
+    get :wait_dn_create, on: :collection
+  end
 
   resources :supplier_dns do
     get :display_dn_line, on: :collection

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161014032246) do
+ActiveRecord::Schema.define(version: 20161031082937) do
 
   create_table "barcode", id: false, force: :cascade do |t|
     t.string   "uuid",                           null: false
@@ -32,7 +32,7 @@ ActiveRecord::Schema.define(version: 20161014032246) do
   add_index "barcode", ["name"], name: "index_barcode_on_name"
   add_index "barcode", ["seq"], name: "index_barcode_on_seq"
   add_index "barcode", ["storage"], name: "index_barcode_on_storage"
-  add_index "barcode", ["uuid"], name: "index_barcode_on_uuid", unique: true
+  add_index "barcode", ["uuid"], name: "sys_c0011373", unique: true
 
   create_table "lot_ref", id: false, force: :cascade do |t|
     t.string "uuid",       null: false
@@ -43,9 +43,9 @@ ActiveRecord::Schema.define(version: 20161014032246) do
     t.string "date_code",  null: false
   end
 
-  add_index "lot_ref", ["charg"], name: "index_lot_ref_on_charg", unique: true
+  add_index "lot_ref", ["charg"], name: "sys_c0011377", unique: true
   add_index "lot_ref", ["entry_date", "matnr", "lifnr", "date_code"], name: "ib80be9714022621f234094b100dee"
-  add_index "lot_ref", ["uuid"], name: "index_lot_ref_on_uuid", unique: true
+  add_index "lot_ref", ["uuid"], name: "sys_c0011378", unique: true
 
 # Could not dump table "po_receipt" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
@@ -59,10 +59,16 @@ ActiveRecord::Schema.define(version: 20161014032246) do
 # Could not dump table "printer" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
+# Could not dump table "rfc_msg" because of following Java::JavaLangInvoke::WrongMethodTypeException
+#   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
+
 # Could not dump table "saprfc_mb1b" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "saprfc_vl02" because of following Java::JavaLangInvoke::WrongMethodTypeException
+#   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
+
+# Could not dump table "sto" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "stock_master" because of following Java::JavaLangInvoke::WrongMethodTypeException
