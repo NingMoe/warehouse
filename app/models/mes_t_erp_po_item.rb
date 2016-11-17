@@ -21,7 +21,8 @@ class MesTErpPoItem < ActiveRecord::Base
               supplier_code: po_receipt.lifnr,
               supplier_lot: po_receipt.date_code,
               supplier_date: po_receipt.mfg_date,
-              plant: po_receipt.werks
+              plant: po_receipt.werks,
+              supplier_dn: po_receipt.lifdn
           )
           po_receipt.mes_trf_sts = 'X'
           po_receipt.save
