@@ -18,7 +18,7 @@
 
       .form-group
         %label{for: 'vtweg'}= t('factory_location')
-        = select_tag 'vtweg', options_for_select(%w[DT TX PH], @user.vtweg), class: 'form-control'
+        = select_tag 'vtweg', options_for_select(%w[DT TX PH TP], @user.vtweg), class: 'form-control'
 
       .form-group
         = label_tag 'lot_label_printer_id', t('lot_label_printer_id')

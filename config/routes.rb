@@ -1,11 +1,20 @@
 Rails.application.routes.draw do
 
+  resources :rfc_msgs do
+    get :msg, on: :collection
+  end
+
   resources :stos do
     get :wait_dn_create, on: :collection
+    get :wait_dn_issue, on: :collection
+    get :wait_billing, on: :collection
+    get :wait_goods_received, on: :collection
+    get :rerun_rfc, on: :collection
   end
 
   resources :supplier_dns do
     get :display_dn_line, on: :collection
+    get :create_po_receipt, on: :collection
     get :split_box, on: :collection
     post :confirm_split_box, on: :collection
   end

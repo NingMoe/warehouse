@@ -10,7 +10,7 @@ class PhSto
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.create_pr(ebeln)
-    dest  = JCoDestinationManager.getDestination('sap_prd')
+    dest = JCoDestinationManager.getDestination('sap_prd')
     repos = dest.getRepository
 
     commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
@@ -22,7 +22,7 @@ class PhSto
 
     item_data = function.getTableParameterList.getTable('REQUISITION_ITEMS')
 
-    sql  = "
+    sql = "
       select a.ebeln,a.ebelp,a.matnr,b.menge,a.meins,
              b.eindt
         from sapsr3.ekpo a
@@ -56,4 +56,70 @@ class PhSto
     }
 
   end
+
+  def self.create_po_agreement
+    begin
+      dest = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList().setValue('WAIT', 'X')
+
+      function = repos.getFunction('BAPI_SAG_CREATE')
+
+      header = function.getImportParameterList().getStructure('HEADER')
+      header.setValue('COMP_CODE', 'L111')
+      header.setValue('DOC_TYPE', 'ZLP')
+      header.setValue('ITEM_INTVL', '00010')
+      header.setValue('VENDOR', 'L210-Y')
+      header.setValue('PURCH_ORG', 'L111')
+      header.setValue('PUR_GROUP', '013')
+      header.setValue('CURRENCY', 'RMB')
+      header.setValue('VPER_START', '20161112')
+      header.setValue('VPER_END', '20191112')
+      header.setValue('SUPPL_PLNT', '281A')
+
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+
+      returnMessage = function.getTableParameterList().getTable('RETURN')
+      (1..returnMessage.getNumRows).each do |i|
+        puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+        RfcMsg.create(
+            rfc_batch_id: 'LUM',
+            rfc_msg_type: returnMessage.getString('TYPE'),
+            rfc_id: returnMessage.getString('ID'),
+            rfc_number: returnMessage.getString('NUMBER'),
+            rfc_message: returnMessage.getString('MESSAGE'),
+            rfc_log_no: returnMessage.getString('LOG_NO'),
+            rfc_log_msg_no: returnMessage.getString('LOG_MSG_NO'),
+            rfc_message_v1: returnMessage.getString('MESSAGE_V1'),
+            rfc_message_v2: returnMessage.getString('MESSAGE_V2'),
+            rfc_message_v3: returnMessage.getString('MESSAGE_V3'),
+            rfc_message_v4: returnMessage.getString('MESSAGE_V4'),
+            rfc_parameter: returnMessage.getString('PARAMETER'),
+            rfc_row: returnMessage.getString('ROW'),
+            rfc_field: returnMessage.getString('FIELD'),
+            rfc_system: returnMessage.getString('SYSTEM')
+        )
+        returnMessage.nextRow
+      end
+
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+    rescue Exception => exception
+      puts exception
+      Mail.defaults do
+        delivery_method :smtp, address: '172.91.1.253', port: 25
+      end
+      message = "#{message} #{exception.message} #{exception.backtrace.join('\n')}"
+
+      Mail.deliver do
+        from 'lum.cl@l-e-i.com'
+        to 'lum.cl@l-e-i.com'
+        subject 'warehouse.sto_rfc.create_po_agreement'
+        body message
+      end
+    end
+  end
+
 end

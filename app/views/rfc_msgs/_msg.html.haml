@@ -1,0 +1,9 @@
+.table-responsive
+  %table.table.table-bordered.table-condensed
+    %thead
+      %tr
+        %th= t('error_msg')
+    %tbody
+      - @rfc_msgs.each do |msg|
+        %tr
+          %td= "#{msg.rfc_id} #{msg.rfc_number} #{msg.rfc_message}"

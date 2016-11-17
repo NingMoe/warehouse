@@ -4,20 +4,12 @@ class SupplierDn < ActiveRecord::Base
 
   def create_sto
     sql = "
-      with
-        tlips as (
-          select distinct a.vbeln,a.matnr,c.werks,a.vgbel,a.vgpos,b.lifnr,c.meins
-            from sapsr3.lips a
-              left join sapsr3.ekko b on b.mandt='168' and b.ebeln=a.vgbel
-              left join sapsr3.ekpo c on c.mandt='168' and c.ebeln=a.vgbel and c.ebelp=substr(a.vgpos,2,5)
-            where a.mandt='168' and a.vbeln=?)
-        select a.vbeln,a.matnr,a.werks,a.lifnr,a.meins,
-               b.ebeln,b.ebelp,b.charg,c.budat,sum(decode(b.shkzg,'S',b.menge * -1, b.menge)) menge
-          from tlips a
-            join sapsr3.ekbe b on b.mandt='168' and b.ebeln=a.vgbel and b.ebelp=substr(a.vgpos,2,5) and b.vgabe in ('1','6')
-            left join tmplum.mch1x c on c.matnr=a.matnr and c.charg=b.charg
-          group by a.vbeln,a.matnr,a.werks,a.lifnr,b.ebeln,b.ebelp,b.charg,c.budat,a.meins
-          having sum(decode(b.shkzg,'S',b.menge * -1, b.menge)) > 0
+     select a.vbeln,a.matnr,a.werks,c.lifnr,a.meins,a.vgbel ebeln,substr(a.vgpos,2,5) ebelp,
+            a.charg,b.budat,a.lfimg menge
+       from sapsr3.lips a
+         left join tmplum.mch1x b on b.matnr=a.matnr and b.charg=a.charg
+         left join sapsr3.ekko c on c.mandt=a.mandt and c.ebeln=a.vgbel
+       where a.mandt='168' and a.vbeln=? and a.lfimg > 0
     "
     rows = Sapdb.find_by_sql([sql, vbeln])
     if rows.present?
@@ -54,7 +46,7 @@ class SupplierDn < ActiveRecord::Base
     SupplierDn.transaction do
       pkg_no = 0
       supplier_dn_lines.each do |line|
-        total_box.times do
+        line.total_box.times do
           pkg_no = pkg_no + 1
           PoReceipt.create(
              barcode: "@#{line.matnr}@#{werks}@#{lifnr}@#{lifdn}@#{line.date_code}@#{line.mfg_date}@#{line.qty_per_box}@#{pkg_no}@#{Time.now.strftime('%Y%m%d%H%M%S')}",
@@ -73,7 +65,7 @@ class SupplierDn < ActiveRecord::Base
              status: '10',
              vtype: impnr.present? ? 'V1' : ' ',
              impnr: impnr,
-             charg: charg,
+             charg: line.charg,
              remote_ip: 'STO',
              creator: updater,
              updater: updater,
@@ -83,6 +75,8 @@ class SupplierDn < ActiveRecord::Base
           )
         end
       end
+      self.status = '20'
+      save
     end
   end
 

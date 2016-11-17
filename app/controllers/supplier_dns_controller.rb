@@ -28,7 +28,7 @@ class SupplierDnsController < ApplicationController
 
     respond_to do |format|
       if @supplier_dn.create_sto
-        format.html { redirect_to @supplier_dn, notice: 'Supplier dn was successfully created.' }
+        format.html { redirect_to new_supplier_dn_url, notice: 'Supplier dn was successfully created.' }
         format.json { render :show, status: :created, location: @supplier_dn }
       else
         format.html { render :new }
@@ -63,6 +63,12 @@ class SupplierDnsController < ApplicationController
 
   def display_dn_line
     @supplier_dn = SupplierDn.find_by(uuid: params[:uuid])
+  end
+
+  def create_po_receipt
+    @supplier_dn = SupplierDn.find_by(uuid: params[:uuid])
+    @supplier_dn.create_po_receipt
+    redirect_to supplier_dns_url
   end
 
   def split_box

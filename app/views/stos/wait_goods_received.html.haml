@@ -3,9 +3,9 @@
 .panel.panel-default
   .panel-heading
     .panel-title
-      待建立SAP DN清單 / Wait for DN Creation List
+      待DN收貨明細 / Wait for DN Goods Received List
   .panel-body
-    = form_tag(wait_dn_create_stos_path, method: 'get') do
+    = form_tag(wait_goods_received_stos_path, method: 'get') do
       = hidden_field_tag 'sbm', 'X'
       .row
         .form-group.col-xs-6.col-sm-2
@@ -19,7 +19,7 @@
     %table.table.table-bordered.table-condensed
       %thead
         %tr
-          %th
+          %th DN
           %th STO
           %th= t('dlv_addr')
           %th= t('material')
@@ -32,7 +32,7 @@
         - @stos.group_by(& :rfc_batch_id).each do |rfc_batch_id, rows|
           - rows.each do |sto|
             %tr
-              %td= link_to t('destroy'), sto, :method => :delete, :data => { :confirm => I18n.t('are_you_sure_delete') }
+              %td= sto.vbeln
               %td= "#{sto.ebeln}.#{sto.ebelp}"
               %td= sto.werks_from
               %td= sto.matnr

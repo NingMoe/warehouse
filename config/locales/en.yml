@@ -112,6 +112,10 @@ en:
   dlv_addr: '發貨地'
   cmtqty: '承諾數'
   wait_dn_create: '待建立SAP DN清單'
+  wait_dn_issue: '待DN發貨過賬清單'
+  wait_billing: '待建立DN發票清單'
+  wait_goods_received: '待DN收貨清單'
+  good_received: '收貨掃描'
 
 
   attributes:

@@ -1,0 +1,13 @@
+#errorDialog.modal.fade{tabindex: '-1', role: 'dialog'}
+  .modal-dialog.modal-lg{role: 'document'}
+    .modal-content
+      .modal-header
+        %button.close{type: 'button', data:{dismiss: 'modal'}, aria:{label:'close'}}
+          %span{aria:{hidden: 'true'}} &times;
+        .modal-title
+          SAP 過賬錯誤信息 Posting Error Information
+      .modal-body
+        #errorTable
+
+      .modal-footer
+        %button.btn.btn-default{data:{dismiss: 'modal'}} 關閉 Close

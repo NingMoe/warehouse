@@ -17,12 +17,13 @@
           %th= t('status')
           %th= t('type')
           %th= t('import_no')
+          %th
 
       %tbody
         - @supplier_dns.each do |supplier_dn|
           %tr
             %td
-              = link_to t('destroy'), supplier_dn, :method => :delete, :data => { :confirm => 'Are you sure?' }
+              = link_to t('good_received'), create_po_receipt_supplier_dns_url(uuid: supplier_dn.uuid)
               .tab-1
               = link_to t('display_dn_line'), display_dn_line_supplier_dns_url(uuid: supplier_dn.uuid)
             %td= supplier_dn.vtweg
@@ -33,3 +34,5 @@
             %td= supplier_dn.status
             %td= supplier_dn.vtype
             %td= supplier_dn.impnr
+            %td
+              = link_to t('destroy'), supplier_dn, :method => :delete, :data => { :confirm => 'Are you sure?' }

@@ -1,4 +1,5 @@
 class PoReceipt < ActiveRecord::Base
+  has_many :po_receipt_lines
   self.primary_key = :uuid
 
   def self.barcode_present?(barcode)
