@@ -4,6 +4,8 @@
   .panel-heading
     .panel-title
       新建STO記錄 / Create STO
+      .pull-right
+        = link_to '返回 Back', :back
   .panel-body
     = form_tag(new_sto_path, method: 'get') do
       = hidden_field_tag 'sbm', 'X'
@@ -23,11 +25,19 @@
         .form-group.col-xs-6.col-sm-3
           %label{for: 'werks'}發貨地 / deliver plant
           = text_field_tag 'werks', params[:werks], class: 'form-control'
+
       .row
-        .form-group.col-xs-3
-          = render 'layouts/search_button'
-          .tab-2
-            = link_to '返回 Back', :back
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'impnr'}進口號碼 / import number
+          = text_field_tag 'impnr', params[:impnr], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'invnr'}發票號碼 / invoice number
+          = text_field_tag 'invnr', params[:invnr], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-2
+          %br
+          = render 'layouts/submit_button'
 
 - if params[:sbm]
   = form_tag('/stos', method: 'post') do

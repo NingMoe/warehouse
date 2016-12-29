@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161114055013) do
+ActiveRecord::Schema.define(version: 20161224075515) do
 
   create_table "barcode", id: false, force: :cascade do |t|
     t.string   "uuid",                           null: false
@@ -46,6 +46,31 @@ ActiveRecord::Schema.define(version: 20161114055013) do
   add_index "lot_ref", ["charg"], name: "sys_c0011377", unique: true
   add_index "lot_ref", ["entry_date", "matnr", "lifnr", "date_code"], name: "ib80be9714022621f234094b100dee"
   add_index "lot_ref", ["uuid"], name: "sys_c0011378", unique: true
+
+  create_table "mo_issue", id: false, force: :cascade do |t|
+    t.string   "uuid",                                                null: false
+    t.string   "budat"
+    t.string   "mblnr"
+    t.string   "mjahr"
+    t.string   "zeile"
+    t.string   "aufnr"
+    t.string   "matnr",                                               null: false
+    t.string   "charg",                                               null: false
+    t.decimal  "menge",        precision: 15, scale: 6, default: 0.0
+    t.string   "lgort"
+    t.string   "posnr"
+    t.string   "rsnum"
+    t.string   "rspos"
+    t.string   "work_center"
+    t.string   "prod_line"
+    t.datetime "created_time",                                        null: false
+    t.string   "printed",                               default: " ", null: false
+    t.string   "mes_teop_id"
+    t.string   "werks"
+  end
+
+  add_index "mo_issue", ["printed", "werks", "budat"], name: "i_mo_issue_printed_werks_budat"
+  add_index "mo_issue", ["uuid"], name: "index_mo_issue_on_uuid", unique: true
 
 # Could not dump table "po_receipt" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
@@ -84,6 +109,12 @@ ActiveRecord::Schema.define(version: 20161114055013) do
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "supplier_dn_line" because of following Java::JavaLangInvoke::WrongMethodTypeException
+#   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
+
+# Could not dump table "t002" because of following Java::JavaLangInvoke::WrongMethodTypeException
+#   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
+
+# Could not dump table "t003" because of following Java::JavaLangInvoke::WrongMethodTypeException
 #   cannot explicitly cast MethodHandle(RubyObjectVar3)Object to (IRubyObject,IRubyObject[],Block)IRubyObject
 
 # Could not dump table "user" because of following Java::JavaLangInvoke::WrongMethodTypeException

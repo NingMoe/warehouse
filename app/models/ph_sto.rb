@@ -122,4 +122,52 @@ class PhSto
     end
   end
 
+  def self.change_dlv_date
+    sql = "
+      select a.ebeln,a.ebelp,a.eindt,b.etenr
+        from t001 a
+          join sapsr3.eket b on b.mandt='168' and b.ebeln=a.ebeln and b.ebelp=a.ebelp
+    "
+    rows = Tmplumdb.find_by_sql(sql)
+    rows.each do |row|
+      dest = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList().setValue('WAIT', 'X')
+
+      function = repos.getFunction('BAPI_PO_CHANGE')
+      function.getImportParameterList().setValue("PURCHASEORDER", row.ebeln)
+      impDat = function.getTableParameterList().getTable("POSCHEDULE")
+      impDat.appendRow();
+      impDat.setValue("PO_ITEM", row.ebelp)
+      impDat.setValue("SCHED_LINE", row.etenr)
+      impDat.setValue("DELIVERY_DATE", row.eindt)
+      impDat.setValue("DEL_DATCAT_EXT", "D")
+
+      impDatx = function.getTableParameterList().getTable("POSCHEDULEX")
+      impDatx.appendRow();
+      impDatx.setValue("PO_ITEM", row.ebelp)
+      impDatx.setValue("PO_ITEMX", "X")
+      impDatx.setValue("SCHED_LINE", row.etenr)
+      impDatx.setValue("SCHED_LINEX", "X")
+      impDatx.setValue("DELIVERY_DATE", "X")
+      impDatx.setValue("DEL_DATCAT_EXT", "X")
+
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+
+      returnMessage = function.getTableParameterList().getTable("RETURN")
+      (1..returnMessage.getNumRows).each { |i|
+        puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}, BANF:#{returnMessage.getString('MESSAGE_V1')}"
+        returnMessage.nextRow
+      }
+
+
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+
+    end
+  end
+
 end

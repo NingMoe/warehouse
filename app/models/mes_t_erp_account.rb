@@ -1,0 +1,307 @@
+class MesTErpAccount < ActiveRecord::Base
+  attr_accessor :ws_bal_qty #decimal
+  attr_accessor :ws_alloc_qty #decimal
+  attr_accessor :ws_locations #array
+  attr_accessor :ws_movements #array
+
+  self.table_name = :t_erp_account
+  self.primary_key = :id
+  establish_connection :leimes
+
+  require 'java'
+  java_import 'java.io.File'
+  java_import 'java.io.FileOutputStream'
+  java_import 'java.util.Properties'
+  java_import 'com.sap.conn.jco.JCoDestination'
+  java_import 'com.sap.conn.jco.JCoDestinationManager'
+  java_import 'com.sap.conn.jco.ext.DestinationDataEventListener'
+  java_import 'com.sap.conn.jco.ext.DestinationDataProvider'
+  java_import 'com.sap.conn.jco.JCoContext'
+
+  def self.sap_posting_261
+    sql = "select order_id from t_erp_account where status='10' and order_id='001100116724' and quantity > 0 group by order_id"
+    MesTErpAccount.find_by_sql(sql).each do |order|
+      mat_lot_refs = []
+      mes_t_erp_accounts = MesTErpAccount.where(status: '10', order_id: order.order_id).where("quantity > 0")
+      mes_t_erp_accounts.each do |row|
+        row.ws_bal_qty = row.quantity - row.sap_posted_qty
+        row.ws_alloc_qty = 0
+        row.ws_locations = []
+        row.ws_movements = []
+        mat_lot_ref = "('#{row.plant}','#{row.material}','#{row.bacth}')"
+        mat_lot_refs.append mat_lot_ref unless mat_lot_refs.include?(mat_lot_ref)
+      end
+
+      # get sap current location stock on hand
+      mchbs = {}
+      while mat_lot_refs.present?
+        sql = "
+          select matnr,werks,lgort,charg,clabs from sapsr3.mchb
+          where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
+            and clabs > 0 and lgort not like '%NN%'
+        "
+        Sapdb.find_by_sql(sql).each do |row|
+          key = "#{row.werks}.#{row.matnr}.#{row.charg}"
+          mchbs[key] = [] unless mchbs.key?(key)
+          mchbs[key].append(row)
+        end
+      end
+
+      sql = "
+        select a.rsnum, a.rspos, a.matnr, a.werks, a.lgort, a.rsart,
+               a.bdmng, a.enmng, (a.bdmng - a.enmng) bal_qty,
+               a.posnr, d.arbpl
+          from sapsr3.resb a
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+            left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
+      "
+      resbs = Sapdb.find_by_sql([sql, order.order_id])
+      resbs.each do |resb|
+        if resb.bal_qty > 0
+          mes_t_erp_accounts.each do |row|
+            if row.ws_bal_qty > 0 and row.material.eql?(resb.matnr) and row.work_center.eql?(resb.arbpl)
+              key = "#{row.plant}.#{row.material}.#{row.bacth}"
+              if mchbs.key?(key)
+                mchbs[key].each do |mchb|
+                  if mchb.clabs > 0 and mchb.lgort.eql?(resb.lgort)
+                    mchb_qty = row.ws_bal_qty > mchb.clabs ? mchb.clabs : row.ws_bal_qty
+                    resb_qty = resb.bal_qty > mchb_qty ? mchb_qty : resb.bal_qty
+                    row.ws_bal_qty -= resb_qty
+                    row.ws_alloc_qty += resb_qty
+                    mchb.clabs -= resb_qty
+                    resb.bal_qty -= resb_qty
+                    row.ws_movements.append({
+                                                rsnum: resb.rsnum, rspos: resb.rspos, rsart: resb.rsart,
+                                                lgort: mchb.lgort, menge: resb_qty
+                                            })
+                  end
+                  break if row.ws_bal_qty == 0
+                end #mchbs[key].each do |mchb|
+              end
+            end
+            break if resb.bal_qty = 0
+          end # mes_t_erp_accounts.each do |row|
+        end #if resb.bal_qty > 0
+
+        #process 2 - over issue not allowed, diff location allow
+        if resb.bal_qty > 0
+          mes_t_erp_accounts.each do |row|
+            if row.ws_bal_qty > 0 and row.material.eql?(resb.matnr) and row.work_center.eql?(resb.arbpl)
+              key = "#{row.plant}.#{row.material}.#{row.bacth}"
+              if mchbs.key?(key)
+                mchbs[key].each do |mchb|
+                  if mchb.clabs > 0
+                    mchb_qty = row.ws_bal_qty > mchb.clabs ? mchb.clabs : row.ws_bal_qty
+                    resb_qty = resb.bal_qty > mchb_qty ? mchb_qty : resb.bal_qty
+                    row.ws_bal_qty -= resb_qty
+                    row.ws_alloc_qty += resb_qty
+                    mchb.clabs -= resb_qty
+                    resb.bal_qty -= resb_qty
+                    row.ws_movements.append({
+                                                rsnum: resb.rsnum, rspos: resb.rspos, rsart: resb.rsart,
+                                                lgort: mchb.lgort, menge: resb_qty
+                                            })
+                  end
+                  break if row.ws_bal_qty == 0
+                end #mchbs[key].each do |mchb|
+              end
+            end
+            break if resb.bal_qty = 0
+          end # mes_t_erp_accounts.each do |row|
+        end #if resb.bal_qty > 0
+      end # resbs.each do |resb|
+
+      mes_t_erp_accounts.each do |row|
+        if row.ws_bal_qty > 0
+          rows = resbs.select { |a| a.matnr.eql?(row.material) and a.werks.eql?(row.plant) and
+              a.arbpl.eql?(row.work_center) and a.posnr.eql?('Z002') }
+
+          if rows.present?
+            resb = rows.first
+          else
+            rows = resbs.select { |a| a.matnr.eql?(row.material) and a.werks.eql?(row.plant) and
+                a.arbpl.eql?(row.work_center) }
+            if rows.present?
+              resb = rows.first
+              #resb.rspos = MesTErpAccount.create_sap_resb(resb.rsnum, resb.rspos)
+            end
+          end
+
+          if resb.present?
+            key = "#{row.plant}.#{row.material}.#{row.bacth}"
+            if mchbs.key?(key)
+              mchbs[key].each do |mchb|
+                if mchb.clabs > 0
+                  resb_qty = row.ws_bal_qty > mchb.clabs ? mchb.clabs : row.ws_bal_qty
+                  row.ws_bal_qty -= resb_qty
+                  row.ws_alloc_qty += resb_qty
+                  mchb.clabs -= resb_qty
+                  resb.bal_qty -= resb_qty
+                  row.ws_movements.append({
+                                              rsnum: resb.rsnum, rspos: resb.rspos, rsart: resb.rsart,
+                                              lgort: mchb.lgort, menge: resb_qty
+                                          })
+                end
+                break if row.ws_bal_qty == 0
+              end #mchbs[key].each do |mchb|
+            end
+          end
+        end #if row.ws_bal_qty > 0
+      end #mes_t_erp_accounts.each do |row|
+
+
+      #return mes_t_erp_accounts
+      mes_t_erp_accounts.each do |row|
+        row.ws_movements.each do |hash|
+          puts hash
+        end
+      end
+    end # MesTErpAccount.find_by_sql(sql).each do |order|
+
+  end
+
+
+  def bapi_goodsmvt_create(mes_t_erp_accounts)
+    begin
+      dest = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList().setValue('WAIT', 'X')
+
+      function = repos.getFunction('BAPI_GOODSMVT_CREATE')
+      function.getImportParameterList().getStructure('GOODSMVT_CODE').setValue('GM_CODE', '03')
+
+      header = function.getImportParameterList().getStructure('GOODSMVT_HEADER')
+      header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
+      header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
+      header.setValue('PR_UNAME', 'LUM.LIN')
+      header.setValue('HEADER_TXT', mes_t_erp_accounts.first.order_id)
+
+      lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
+
+      mes_t_erp_accounts.each do |resb|
+        resb.ws_movements.each do |hash|
+          lines.appendRow()
+          lines.setValue('MATERIAL', resb.material)
+          lines.setValue('PLANT', resb.plant)
+          lines.setValue('BATCH', resb.bacth)
+          lines.setValue('STGE_LOC', hash[:lgort])
+          lines.setValue('MOVE_TYPE', '261')
+          #lines.setValue('XSTOB', 'X') #if 262
+          lines.setValue('ORDERID', resb.order_id)
+          lines.setValue('RESERV_NO', hash[:rsnum])
+          lines.setValue('RES_ITEM', hash[:rspos])
+          lines.setValue('RES_TYPE', hash[:rsart])
+          lines.setValue('ENTRY_QNT', hash[:resb_qty])
+        end
+      end
+
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+
+      returnMessage = function.getTableParameterList().getTable('RETURN')
+      (1..returnMessage.getNumRows).each do |i|
+        puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+        returnMessage.nextRow
+      end
+
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+
+    rescue Exception => exception
+      puts exception
+    end
+  end
+
+  def self.test
+
+    begin
+      dest = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList().setValue('WAIT', 'X')
+
+      function = repos.getFunction('BAPI_GOODSMVT_CREATE')
+      function.getImportParameterList().getStructure('GOODSMVT_CODE').setValue('GM_CODE', '03')
+
+      header = function.getImportParameterList().getStructure('GOODSMVT_HEADER')
+      header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
+      header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
+      header.setValue('PR_UNAME', 'LUM.LIN')
+      header.setValue('HEADER_TXT', '001100114051')
+
+      lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
+
+      sql = "
+        select a.aufnr,a.matnr,a.rsnum,a.rspos,a.rsart,a.lgort,a.bdmng,a.enmng,a.werks
+          from sapsr3.resb a
+        where a.mandt='168' and a.aufnr='001100114051' and a.matnr='121282-4'
+      "
+      resbs = Sapdb.find_by_sql(sql)
+      resbs.each do |resb|
+        lines.appendRow()
+        lines.setValue('MATERIAL', resb.matnr)
+        lines.setValue('PLANT', resb.werks)
+        lines.setValue('BATCH', '1610015891')
+        #lines.setValue('STGE_LOC','ZPUR')
+        #lines.setValue('MOVE_TYPE', '261')
+        lines.setValue('XSTOB', 'X') #if 262
+        lines.setValue('ORDERID', resb.aufnr)
+        lines.setValue('RESERV_NO', resb.rsnum)
+        lines.setValue('RES_ITEM', resb.rspos)
+        lines.setValue('RES_TYPE', resb.rsart)
+        #lines.setValue('ENTRY_QNT', resb.bdmng)
+        lines.setValue('ENTRY_QNT', 1)
+      end
+
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+
+      returnMessage = function.getTableParameterList().getTable('RETURN')
+      (1..returnMessage.getNumRows).each do |i|
+        puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+        returnMessage.nextRow
+      end
+
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+
+    rescue Exception => exception
+      puts exception
+    end
+  end
+
+  def self.create_sap_resb(rsnum, rspos)
+    new_rspos = rspos.to_i + 5000
+    dest = JCoDestinationManager.getDestination('sap_prd')
+    repos = dest.getRepository
+    commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+    commit.getImportParameterList().setValue('WAIT', 'X')
+
+    function = repos.getFunction('Z_CREATE_RESERVATION')
+    lines = function.getTableParameterList().getTable('XRESB')
+
+    sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=?"
+    resbs = Sapdb.find_by_sql([sql, rsnum, rspos])
+    resbs.each do |resb|
+      lines.appendRow()
+      resb.attributes.each do |k, v|
+        lines.setValue(k.upcase, v) if v.present?
+      end
+      lines.setValue('RSPOS', "#{new_rspos}")
+      lines.setValue('OBJNR', "OK#{rsnum}#{new_rspos}")
+      lines.setValue('BDMNG', '0')
+      lines.setValue('ENMNG', '0')
+      lines.setValue('ENWRT', '0')
+      lines.setValue('ERFMG', '0')
+      lines.setValue('POSNR', 'Z002')
+    end
+    com.sap.conn.jco.JCoContext.begin(dest)
+    function.execute(dest)
+    commit.execute(dest)
+    com.sap.conn.jco.JCoContext.end(dest)
+    new_rspos
+  end
+
+end

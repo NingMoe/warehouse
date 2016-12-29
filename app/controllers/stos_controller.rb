@@ -5,7 +5,20 @@ class StosController < ApplicationController
 
   def new
     if params[:sbm]
-      if params[:ebeln].present?
+      if params[:impnr].present?
+        pos = Sto.create_by_impnr(params[:impnr], params[:invnr] || '')
+        pos.each do |po|
+          Sto.create(
+              vtweg: PoReceipt.vtweg(po.reswk), ebeln: po.ebeln, ebelp: po.ebelp,
+              matnr: po.matnr, werks_from: po.reswk, werks_to: po.werks,
+              menge: po.menge, meins: po.meins, lifnr: po.lifnr,
+              impnr: po.impnr, impim: po.impim,
+              status: '10WaitDnCreate',
+              remote_ip: request.remote_ip, creator: current_user.email, updater: current_user.email
+          )
+        end
+        redirect_to wait_dn_create_stos_url if pos.present?
+      elsif params[:ebeln].present?
         @open_stos = Sto.open_sto_find_by_po(params[:ebeln], params[:ebelp], params[:werks])
       elsif params[:matnr].present?
         @open_stos = Sto.open_sto_find_by_material(params[:matnr], params[:werks])

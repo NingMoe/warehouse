@@ -1,6 +1,17 @@
 class Sto < ActiveRecord::Base
   self.primary_key = :uuid
 
+  def self.create_by_impnr(impnr,invnr)
+    sql = "
+      select a.impnr,a.impim,a.invnr,a.ebeln,a.ebelp,a.matnr,a.menge,a.meins,
+             b.reswk,c.werks,b.lifnr
+        from sapsr3.ziebi002 a
+          join sapsr3.ekko b on b.mandt=a.mandt and b.ebeln=a.ebeln
+          join sapsr3.ekpo c on c.mandt=a.mandt and c.ebeln=a.ebeln and c.ebelp=a.ebelp
+        where a.mandt='168' and a.impnr='#{impnr}' and a.invnr like ('%#{invnr}%')
+    "
+    Sapdb.find_by_sql(sql)
+  end
 
   def self.open_sto_find_by_po(ebeln,ebelp,reswk)
     # sql = "
