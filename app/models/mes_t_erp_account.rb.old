@@ -22,7 +22,7 @@ class MesTErpAccount < ActiveRecord::Base
     sql = "select order_id from t_erp_account where status='10' and quantity > 0 group by order_id"
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
-      mes_t_erp_accounts = MesTErpAccount.where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 15")
+      mes_t_erp_accounts = MesTErpAccount.where(status: '10', order_id: order.order_id).where("quantity > 0  and ((sysdate - updated_time)*24*60) > 15")
       mes_t_erp_accounts.each do |row|
         MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
         row.ws_bal_qty = row.quantity - row.sap_posted_qty

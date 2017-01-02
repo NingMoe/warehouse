@@ -17,7 +17,7 @@ class MesTErpPoItem < ActiveRecord::Base
       po_receipts.each do |row|
         po_receipt = PoReceipt.find(row.uuid)
         MesTErpPoItem.transaction do
-          if row.use_flag.eql?('1')
+          if row.use_flag == 1
             po_receipt_line = po_receipt.po_receipt_lines.first
             MesTErpPoItem.create(
                 po_number: po_receipt_line.ebeln,

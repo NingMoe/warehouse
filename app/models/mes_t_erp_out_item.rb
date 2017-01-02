@@ -14,7 +14,7 @@ class MesTErpOutItem < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.to_mes_location
-    sql = "select distinct plant from t_erp_out_items where status = ' ' order by plant"
+    sql = "select distinct plant from t_erp_out_items where status in (' ','W') order by plant"
     rows = MesTErpOutItem.find_by_sql(sql)
     rows.each do |row|
       compute(row.plant)
@@ -69,16 +69,19 @@ class MesTErpOutItem < ActiveRecord::Base
       msegs.each do |mseg|
         puts mseg
       end
-      break
-      # posting_success = bapi_goodsmvt_create_311(msegs)
-      # mes_t_erp_out_items.each do |row|
-      #   if posting_success
-      #     row.row.status = row.trf_qty == item_num ?  'X' :  'W'
-      #   else
-      #     row.status = 'E'
-      #   end
-      #   row.save
-      # end
+
+      posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
+      mes_t_erp_out_items.each do |row|
+        if posting_success
+          row.status = (row.trf_qty == row.item_num) ?  'X' :  'W'
+          row.mblnr = mblnr
+          row.mjahr = mjahr
+        else
+          row.trf_qty -= row.ws_alloc_qty
+          row.status = 'E'
+        end
+        row.save
+      end
     end
   end
 
@@ -123,6 +126,10 @@ class MesTErpOutItem < ActiveRecord::Base
         end
         returnMessage.nextRow
       end
+
+      mblnr = function.getExportParameterList().getString('MATERIALDOCUMENT')
+      mjahr = function.getExportParameterList().getString('MATDOCUMENTYEAR')
+
       commit.execute(dest)
       com.sap.conn.jco.JCoContext.end(dest)
 
@@ -140,7 +147,7 @@ class MesTErpOutItem < ActiveRecord::Base
       end
       posting_success = false
     end
-    posting_success
+    [posting_success, mblnr, mjahr]
   end
 
 end

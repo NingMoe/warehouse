@@ -61,7 +61,7 @@ class MesTErpOutProject < ActiveRecord::Base
                 ws_qty = mchb.clabs > resb.bal_qty ? resb.bal_qty : mchb.clabs
                 resb.bal_qty -= ws_qty
                 mchb.clabs -= ws_qty
-                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty, resb: resb})
+                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty, resb: resb, project: project})
               end
               break if resb.bal_qty == 0
             end
@@ -71,7 +71,6 @@ class MesTErpOutProject < ActiveRecord::Base
         msegs.each do |mseg|
           puts mseg
         end
-        break
       else
         MesTErpOutProject.connection.execute("update t_erp_out_project set status='X', updated_time = sysdate where teop_id=#{project.teop_id}")
       end
@@ -79,7 +78,7 @@ class MesTErpOutProject < ActiveRecord::Base
   end
 
   def self.bapi_goodsmvt_create_261(msegs)
-#    begin
+    begin
       aufnr = (msegs.first)[:resb].aufnr
       dest = JCoDestinationManager.getDestination('sap_prd')
       repos = dest.getRepository
@@ -99,7 +98,7 @@ class MesTErpOutProject < ActiveRecord::Base
       line_id = 0
       msegs.each do |mseg|
         resb = mseg[:resb]
-        line_id = line_id + 1
+        line_id = line_id + 10
         lines.appendRow()
         lines.setValue('LINE_ID', line_id)
         lines.setValue('MATERIAL', mseg[:matnr])
@@ -118,23 +117,60 @@ class MesTErpOutProject < ActiveRecord::Base
       com.sap.conn.jco.JCoContext.begin(dest)
       function.execute(dest)
 
+      posting_success = true
       returnMessage = function.getTableParameterList().getTable('RETURN')
       (1..returnMessage.getNumRows).each do |i|
         puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+        if returnMessage.getString('TYPE').eql?('E')
+          posting_success = false
+        end
         returnMessage.nextRow
       end
-      mblnr = function.getExportParameterList().getString('MATERIALDOCUMENT')
-      mjahr = function.getExportParameterList().getString('MATDOCUMENTYEAR')
 
-      puts "#{mblnr}.#{mjahr}"
 
-      #commit.execute(dest)
+      if posting_success
+        mblnr = function.getExportParameterList().getString('MATERIALDOCUMENT')
+        mjahr = function.getExportParameterList().getString('MATDOCUMENTYEAR')
+
+        MesTErpOutProjectIss.transaction do
+          line_id = 0
+          msegs.each do |mseg|
+            line_id += 10
+            resb = mseg[:resb]
+            MesTErpOutProjectIss.create(
+                uuid: UUID.new.generate(:compact),
+                teop_id: mseg[:project].teop_id,
+                mblnr: mblnr,
+                mjahr: mjahr,
+                zeile: line_id,
+                matnr: mseg[:matnr],
+                werks: mseg[:werks],
+                menge: mseg[:menge],
+                charg: mseg[:charg],
+                rsnum: resb.rsnum,
+                rspos: resb.rspos,
+                vtweg: PoReceipt.vtweg(mseg[:werks])
+            )
+          end
+          commit.execute(dest)
+        end
+      end
       com.sap.conn.jco.JCoContext.end(dest)
 
-#    rescue Exception => exception
-#      puts exception
-#    end
+    rescue Exception => exception
+      Mail.defaults do
+        delivery_method :smtp, address: '172.91.1.253', port: 25
+      end
+      message = "#{message} #{exception.message} #{exception.backtrace.join('\n')}"
 
+      Mail.deliver do
+        from 'lum.cl@l-e-i.com'
+        to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
+        subject 'mes_t_erp_out_project bapi_goodsmvt_create_261'
+        body message
+      end
+
+    end
   end
 
 end
