@@ -65,10 +65,10 @@ class MesTErpOutItem < ActiveRecord::Base
           end
         end
       end
-      puts "#######"
-      msegs.each do |mseg|
-        puts mseg
-      end
+      # puts "#######"
+      # msegs.each do |mseg|
+      #   puts mseg
+      # end
 
       posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
       mes_t_erp_out_items.each do |row|
@@ -113,7 +113,7 @@ class MesTErpOutItem < ActiveRecord::Base
         lines.setValue('MOVE_BATCH', mseg[:charg])
         lines.setValue('MOVE_TYPE', '311')
         lines.setValue('ENTRY_QNT', mseg[:menge])
-        lines.setValue('ITEM_TEXT', mseg[:project_id])
+        #lines.setValue('ITEM_TEXT', mseg[:project_id])
       end
       com.sap.conn.jco.JCoContext.begin(dest)
       function.execute(dest)
