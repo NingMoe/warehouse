@@ -14,7 +14,7 @@ class MesTErpOutItem < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.to_mes_location
-    sql = "select distinct plant from t_erp_out_items where status in (' ','W') order by plant"
+    sql = "select distinct plant from t_erp_out_items where status in (' ','W') and project_id is not null order by plant"
     rows = MesTErpOutItem.find_by_sql(sql)
     rows.each do |row|
       compute(row.plant)
@@ -23,7 +23,7 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' ' and plant = ? and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' ' and plant = ? and project_id is not null and rownum < 500"
       rows = MesTErpOutItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
@@ -58,7 +58,7 @@ class MesTErpOutItem < ActiveRecord::Base
                 row.trf_qty += ws_qty
                 row.ws_alloc_qty += ws_qty
                 req_qty -= ws_qty
-                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty, aufnr: row.project_id[0..49]})
+                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty})
               end
               break if req_qty == 0
             end
