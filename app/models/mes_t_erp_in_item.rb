@@ -24,7 +24,8 @@ class MesTErpInItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_in_items where status = ' ' and plant = ? and project_id is not null and rownum < 500"
+      call_posting = false
+      sql = "select distinct plant,item_code,lot_no from t_erp_in_items where status = ' ' and plant = ? and ((sysdate - updated_time)*24*60) > 15 and project_id is not null and rownum < 500"
       rows = MesTErpInItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
@@ -51,6 +52,7 @@ class MesTErpInItem < ActiveRecord::Base
       msegs = []
       mes_t_erp_in_items = MesTErpInItem.where(status: ' ').where("(plant,item_code,lot_no) in (#{mat_lot_refs.join(',')})").order(:teii_id)
       mes_t_erp_in_items.each do |row|
+        MesTErpInItem.connection.execute("update t_erp_in_items set updated_time = sysdate where teii_id=#{row.teii_id}")
         row.ws_alloc_qty = 0
         req_qty = row.item_num - row.trf_qty
         if req_qty > 0
@@ -64,6 +66,7 @@ class MesTErpInItem < ActiveRecord::Base
                 row.ws_alloc_qty += ws_qty
                 req_qty -= ws_qty
                 msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.to_loc, charg: mchb.charg, menge: ws_qty})
+                call_posting = true
               end
               break if req_qty == 0
             end
@@ -74,18 +77,19 @@ class MesTErpInItem < ActiveRecord::Base
       # msegs.each do |mseg|
       #   puts mseg
       # end
-
-      posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
-      mes_t_erp_in_items.each do |row|
-        if posting_success
-          row.status = 'X' if row.trf_qty == row.item_num
-          row.mblnr = mblnr
-          row.mjahr = mjahr
-        else
-          row.trf_qty -= row.ws_alloc_qty
-          row.status = 'E'
+      if call_posting
+        posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
+        mes_t_erp_in_items.each do |row|
+          if posting_success
+            row.status = 'X' if row.trf_qty == row.item_num
+            row.mblnr = mblnr
+            row.mjahr = mjahr
+          else
+            row.trf_qty -= row.ws_alloc_qty
+            row.status = 'E'
+          end
+          row.save
         end
-        row.save
       end
     end
   end

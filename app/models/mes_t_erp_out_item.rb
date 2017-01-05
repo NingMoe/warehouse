@@ -23,9 +23,10 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' '  and plant = ? and project_id is not null and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' '  and plant = ? and ((sysdate - updated_time)*24*60) > 15 and project_id is not null and rownum < 500"
       rows = MesTErpOutItem.find_by_sql([sql, werks])
       break if rows.blank?
+      call_posting = false
       mat_lot_refs = []
       rows.each do |row|
         mat_lot_refs.append("('#{row.plant}','#{row.item_code}','#{row.lot_no}')")
@@ -39,13 +40,15 @@ class MesTErpOutItem < ActiveRecord::Base
       rows = Sapdb.find_by_sql(sql)
       rows.each do |row|
         key = "#{row.werks}.#{row.matnr}.#{row.charg}"
-        mchbs[key] = [] unless mchbs.key?(key)
+        mchbs[key] = [] unless
+            mchbs.key?(key)
         mchbs[key].append(row)
       end
 
       msegs = []
       mes_t_erp_out_items = MesTErpOutItem.where(status: ' ').where("(plant,item_code,lot_no) in (#{mat_lot_refs.join(',')})").order(:teoi_id)
       mes_t_erp_out_items.each do |row|
+        MesTErpOutItem.connection.execute("update t_erp_out_items set updated_time = sysdate where teoi_id=#{row.teoi_id}")
         row.ws_alloc_qty = 0
         req_qty = row.item_num - row.trf_qty
         if req_qty > 0
@@ -59,6 +62,7 @@ class MesTErpOutItem < ActiveRecord::Base
                 row.ws_alloc_qty += ws_qty
                 req_qty -= ws_qty
                 msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty})
+                call_posting = true
               end
               break if req_qty == 0
             end
@@ -70,17 +74,19 @@ class MesTErpOutItem < ActiveRecord::Base
       #   puts mseg
       # end
 
-      posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
-      mes_t_erp_out_items.each do |row|
-        if posting_success
-          row.status = 'X' if row.trf_qty == row.item_num
-          row.mblnr = mblnr
-          row.mjahr = mjahr
-        else
-          row.trf_qty -= row.ws_alloc_qty
-          row.status = 'E'
+      if call_posting
+        posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
+        mes_t_erp_out_items.each do |row|
+          if posting_success
+            row.status = 'X' if row.trf_qty == row.item_num
+            row.mblnr = mblnr
+            row.mjahr = mjahr
+          else
+            row.trf_qty -= row.ws_alloc_qty
+            row.status = 'E'
+          end
+          row.save
         end
-        row.save
       end
     end
   end
