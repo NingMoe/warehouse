@@ -23,7 +23,7 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' ' and plant = ? and project_id is not null and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = (' ','W') and plant = ? and project_id is not null and rownum < 500"
       rows = MesTErpOutItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
