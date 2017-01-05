@@ -28,3 +28,20 @@
     .panel-body
       %h5= link_to t('maintain_sto'), stos_url
       %h5= link_to t('maintain_sto_dn'), supplier_dns_url
+
+.col-xs-12.col-xs-6
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        SAP文件號信息傳入MES打印標籤及上架
+    .panel-body
+      = form_tag(mseg_transfer_to_mes_po_receipts_url, method: 'get') do
+        .form-group
+          .form-inputs
+            = text_area_tag 'mblnrs', '', class: 'form-control', placeholder: '文件號碼', size: '25x3'
+        .form-group
+          = label_tag '文件年份', nil
+          = text_field_tag 'mjahr', Time.now.strftime("%Y"), class: 'form-control', placeholder: '文件年份'
+        .row
+        = render 'layouts/submit_button'
+

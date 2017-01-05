@@ -76,6 +76,43 @@ class PoReceiptsController < ApplicationController
     end
   end
 
+  def mseg_transfer_to_mes
+    mjahr = params[:mjahr] || Time.now.strftime("%Y")
+    if params[:mblnrs].present?
+      text_area_to_array(params[:mblnrs]).each do |mblnr|
+        sql = "
+          select a.mblnr,a.mjahr,a.zeile,a.matnr,a.werks,a.charg,a.lifnr,
+                 a.menge,a.ebeln,a.ebelp,b.hsdat,b.licha,c.budat,c.frbnr,
+                 c.xblnr
+            from sapsr3.mseg a
+              join sapsr3.mkpf c on c.mandt='168' and c.mblnr=a.mblnr and c.mjahr=a.mjahr
+              left join sapsr3.mch1 b on b.mandt='168' and b.matnr=a.matnr and b.charg=a.charg
+            where a.mandt='168' and a.mblnr='#{mblnr}' and a.mjahr='#{mjahr}'
+        "
+        po_receipts = Sapdb.find_by_sql(sql)
+        po_receipts.each do |po_receipt|
+          MesTErpPoItem.create(
+              po_number: po_receipt.ebeln,
+              item_line: po_receipt.ebelp,
+              item_code: po_receipt.matnr,
+              item_num: 0,
+              item_lot: po_receipt.charg,
+              item_sn: "MB#{po_receipt.mjahr}.#{po_receipt.mblnr}.#{po_receipt.zeile}.#{po_receipt.charg}",
+              item_sn_qty: po_receipt.menge,
+              receive_type: '0',
+              supplier_code: po_receipt.lifnr,
+              supplier_lot: po_receipt.licha,
+              supplier_date: po_receipt.hsdat,
+              plant: po_receipt.werks,
+              has_label: 0,
+              supplier_dn: po_receipt.xblnr
+          )
+        end
+      end
+    end
+    redirect_to home_po_receipts_url
+  end
+
   def import_order
     sql = "
       with

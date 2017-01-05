@@ -14,4 +14,13 @@ class ApplicationController < ActionController::Base
     redirect_to root_url(time_out: exception)
   end
 
+  def text_area_to_array(text_area)
+    array = Array.new
+    buf = text_area.split("\n")
+    buf.each do |s|
+      array << s.strip.gsub("\r","")
+    end
+    array
+  end
+
 end
