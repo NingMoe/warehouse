@@ -14,7 +14,7 @@ class MesTErpOutItem < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.to_mes_location
-    sql = "select distinct plant from t_erp_out_items where status in (' ','W') and project_id is not null order by plant"
+    sql = "select distinct plant from t_erp_out_items where status = ' ' and project_id is not null order by plant"
     rows = MesTErpOutItem.find_by_sql(sql)
     rows.each do |row|
       compute(row.plant)
@@ -23,7 +23,7 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = (' ','W')  and plant = ? and project_id is not null and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' '  and plant = ? and project_id is not null and rownum < 500"
       rows = MesTErpOutItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
@@ -73,7 +73,7 @@ class MesTErpOutItem < ActiveRecord::Base
       posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
       mes_t_erp_out_items.each do |row|
         if posting_success
-          row.status = (row.trf_qty == row.item_num) ?  'X' :  'W'
+          row.status = 'X' if row.trf_qty == row.item_num
           row.mblnr = mblnr
           row.mjahr = mjahr
         else
