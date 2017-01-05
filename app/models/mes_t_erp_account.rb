@@ -28,6 +28,7 @@ class MesTErpAccount < ActiveRecord::Base
     MesTErpAccount.transaction do
       stk_returns = MesTErpAccount.where("status='10' and move_type='262' and quantity < 0").order(:order_id)
       stk_returns.each do |stk_return|
+        MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{stk_return.id}")
         stk_return.ws_bal_qty = stk_return.quantity - stk_return.sap_posted_qty - stk_return.mes_inter_qty
         stk_return.ws_alloc_qty = 0
 
@@ -93,6 +94,7 @@ class MesTErpAccount < ActiveRecord::Base
     stk_issues_hash = {}
     stk_returns = MesTErpAccount.where("status='10' and move_type='262' and quantity < 0").order(:order_id)
     stk_returns.each do |stk_return|
+      MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{stk_return.id}")
       stk_return.ws_bal_qty = stk_return.quantity - stk_return.sap_posted_qty - stk_return.mes_inter_qty
       stk_return.ws_alloc_qty = 0
       stk_return.ws_movements = []
