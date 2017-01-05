@@ -31,7 +31,7 @@
               - unless row.mes_trf_sts.eql?('X')
                 = link_to t('destroy'), row, :method => :delete, :data => { :confirm => I18n.t('are_you_sure_delete') }
                 .tab-1
-                = link_to '借料', transfer_to_mes_po_receipt_url(row)
+                = link_to '借料', transfer_to_mes_po_receipt_url(row),:data => { :confirm => '確認借料!' }
             %td= row.matnr
             %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
             %td.text-right= number_with_precision(row.pkg_no, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
