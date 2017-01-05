@@ -140,7 +140,7 @@ class MesTErpAccount < ActiveRecord::Base
 
 
   def self.mo_issue
-    sql = "select order_id from t_erp_account where status='10' and quantity > 0 and move_type='261' group by order_id"
+    sql = "select order_id from t_erp_account where status='10' and quantity > 0 and move_type='261' group by order_id order by order_id"
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
       mes_t_erp_accounts = MesTErpAccount

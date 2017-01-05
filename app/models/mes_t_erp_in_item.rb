@@ -1,6 +1,7 @@
-class MesTErpOutItem < ActiveRecord::Base
-  self.table_name = :t_erp_out_items
+class MesTErpInItem < ActiveRecord::Base
+  self.table_name = :t_erp_in_items
   establish_connection :leimes
+
   attr_accessor :ws_alloc_qty
 
   require 'java'
@@ -13,9 +14,9 @@ class MesTErpOutItem < ActiveRecord::Base
   java_import 'com.sap.conn.jco.ext.DestinationDataProvider'
   java_import 'com.sap.conn.jco.JCoContext'
 
-  def self.to_mes_location
-    sql = "select distinct plant from t_erp_out_items where status in (' ','W') and project_id is not null order by plant"
-    rows = MesTErpOutItem.find_by_sql(sql)
+  def self.from_mes_location
+    sql = "select distinct plant from t_erp_in_items where status in (' ','W') and project_id is not null order by plant"
+    rows = MesTErpInItem.find_by_sql(sql)
     rows.each do |row|
       compute(row.plant)
     end
@@ -23,8 +24,8 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' ' and plant = ? and project_id is not null and rownum < 500"
-      rows = MesTErpOutItem.find_by_sql([sql, werks])
+      sql = "select distinct plant,item_code,lot_no from t_erp_in_items where status = ' ' and plant = ? and project_id is not null and rownum < 500"
+      rows = MesTErpInItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
       rows.each do |row|
@@ -32,8 +33,12 @@ class MesTErpOutItem < ActiveRecord::Base
       end
 
       sql = "
-          select matnr,werks,lgort,charg,clabs from sapsr3.mchb
-          where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.join(',')}) and clabs > 0
+          select a.matnr,a.werks,a.lgort,a.charg,a.clabs,
+            case when b.lgfsb = '' then b.lgpro else lgfsb end to_loc
+            from sapsr3.mchb a
+              join sapsr3.marc b on b.mandt='168' and b.matnr=a.matnr and b.werks=a.werks
+            where a.mandt='168' and (a.werks,a.matnr,a.charg) in (#{mat_lot_refs.join(',')}) and a.clabs > 0
+            and a.lgort='MES'
         "
       mchbs = {}
       rows = Sapdb.find_by_sql(sql)
@@ -44,8 +49,8 @@ class MesTErpOutItem < ActiveRecord::Base
       end
 
       msegs = []
-      mes_t_erp_out_items = MesTErpOutItem.where(status: ' ').where("(plant,item_code,lot_no) in (#{mat_lot_refs.join(',')})").order(:teoi_id)
-      mes_t_erp_out_items.each do |row|
+      mes_t_erp_in_items = MesTErpInItem.where(status: ' ').where("(plant,item_code,lot_no) in (#{mat_lot_refs.join(',')})").order(:teii_id)
+      mes_t_erp_in_items.each do |row|
         row.ws_alloc_qty = 0
         req_qty = row.item_num - row.trf_qty
         if req_qty > 0
@@ -58,7 +63,7 @@ class MesTErpOutItem < ActiveRecord::Base
                 row.trf_qty += ws_qty
                 row.ws_alloc_qty += ws_qty
                 req_qty -= ws_qty
-                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.lgort, charg: mchb.charg, menge: ws_qty})
+                msegs.append({werks: mchb.werks, matnr: mchb.matnr, lgort: mchb.to_loc, charg: mchb.charg, menge: ws_qty})
               end
               break if req_qty == 0
             end
@@ -71,7 +76,7 @@ class MesTErpOutItem < ActiveRecord::Base
       # end
 
       posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
-      mes_t_erp_out_items.each do |row|
+      mes_t_erp_in_items.each do |row|
         if posting_success
           row.status = (row.trf_qty == row.item_num) ?  'X' :  'W'
           row.mblnr = mblnr
@@ -107,8 +112,8 @@ class MesTErpOutItem < ActiveRecord::Base
         lines.appendRow()
         lines.setValue('MATERIAL', mseg[:matnr])
         lines.setValue('PLANT', mseg[:werks])
-        lines.setValue('STGE_LOC', mseg[:lgort])
-        lines.setValue('MOVE_STLOC', 'MES')
+        lines.setValue('STGE_LOC', 'MES')
+        lines.setValue('MOVE_STLOC', mseg[:lgort])
         lines.setValue('BATCH', mseg[:charg])
         lines.setValue('MOVE_BATCH', mseg[:charg])
         lines.setValue('MOVE_TYPE', '311')
@@ -149,5 +154,6 @@ class MesTErpOutItem < ActiveRecord::Base
     end
     [posting_success, mblnr, mjahr]
   end
+
 
 end
