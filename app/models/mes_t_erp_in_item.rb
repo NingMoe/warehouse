@@ -15,7 +15,7 @@ class MesTErpInItem < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.from_mes_location
-    sql = "select distinct plant from t_erp_in_items where status in (' ','W') and project_id is not null order by plant"
+    sql = "select distinct plant from t_erp_in_items where status = ' ' and project_id is not null order by plant"
     rows = MesTErpInItem.find_by_sql(sql)
     rows.each do |row|
       compute(row.plant)
@@ -78,7 +78,7 @@ class MesTErpInItem < ActiveRecord::Base
       posting_success, mblnr, mjahr = bapi_goodsmvt_create_311(msegs)
       mes_t_erp_in_items.each do |row|
         if posting_success
-          row.status = (row.trf_qty == row.item_num) ?  'X' :  'W'
+          row.status = 'X' if row.trf_qty == row.item_num
           row.mblnr = mblnr
           row.mjahr = mjahr
         else
