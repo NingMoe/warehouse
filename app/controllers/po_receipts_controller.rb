@@ -1,5 +1,5 @@
 class PoReceiptsController < ApplicationController
-  before_action :set_po_receipt, only: [:show, :edit, :update, :destroy]
+  before_action :set_po_receipt, only: [:show, :edit, :update, :destroy, :transfer_to_mes]
 
   # GET /po_receipts
   # GET /po_receipts.json
@@ -74,6 +74,14 @@ class PoReceiptsController < ApplicationController
       format.html { redirect_to po_receipts_url(lifnr: lifnr, lifdn: lifdn, werks: werks) }
       format.json { head :no_content }
     end
+  end
+
+  def transfer_to_mes
+    lifnr = @po_receipt.lifnr
+    lifdn = @po_receipt.lifdn
+    werks = @po_receipt.werks
+    MesTErpPoItem.transfer_to_mes(@po_receipt.uuid)
+    redirect_to po_receipts_url(lifnr: lifnr, lifdn: lifdn, werks: werks)
   end
 
   def mseg_transfer_to_mes
