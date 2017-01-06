@@ -35,6 +35,7 @@ class MesTErpOutItem < ActiveRecord::Base
       sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.join(',')}) and clabs > 0
+                and lgort not in ('MES')
         "
       mchbs = {}
       rows = Sapdb.find_by_sql(sql)
@@ -106,7 +107,7 @@ class MesTErpOutItem < ActiveRecord::Base
       header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
       header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
       header.setValue('PR_UNAME', 'LUM.LIN')
-      header.setValue('HEADER_TXT', 'MES')
+      header.setValue('HEADER_TXT', 'MES OUT ITEMS')
 
       lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
       msegs.each do |mseg|

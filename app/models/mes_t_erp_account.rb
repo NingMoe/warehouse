@@ -146,7 +146,7 @@ class MesTErpAccount < ActiveRecord::Base
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
       mes_t_erp_accounts = MesTErpAccount
-                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 15")
+                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 1")
                                .order(id: :asc)
       mes_t_erp_accounts.each do |row|
         MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
@@ -172,6 +172,7 @@ class MesTErpAccount < ActiveRecord::Base
           mchbs[key].append(row)
         end
       end
+      sap_no_stocks = []
       orders = order.order_id.split(',')
       orders.each do |aufnr|
         sql = "
@@ -187,7 +188,11 @@ class MesTErpAccount < ActiveRecord::Base
         resbs.each do |resb|
           if resb.bal_qty > 0
             mes_t_erp_accounts.each do |row|
-              if row.ws_bal_qty > 0 and row.material.eql?(resb.matnr) and row.work_center.eql?(resb.arbpl)
+              if row.ws_bal_qty > 0 and
+                  row.material.eql?(resb.matnr) and
+                  row.work_center.eql?(resb.arbpl) and
+                  row.plant.eql?(resb.werks)
+
                 key = "#{row.plant}.#{row.material}.#{row.bacth}"
                 if mchbs.key?(key)
                   mchbs[key].each do |mchb|
@@ -209,16 +214,20 @@ class MesTErpAccount < ActiveRecord::Base
                   end #mchbs[key].each do |mchb|
                 end
               end
-              if row.ws_bal_qty > 0 and resb.bal_qty > 0
-                row.sap_no_stock = 'X'
-              else
-                row.sap_no_stock = ' '
-              end
             end # mes_t_erp_accounts.each do |row|
           end #if resb.bal_qty > 0
+
+          key = "#{resb.werks}.#{resb.matnr}.#{resb.arbpl}"
+          sap_no_stocks.append(key) if resb.bal_qty > 0
+
         end # resbs.each do |resb|
       end
       bapi_goodsmvt_create_261(mes_t_erp_accounts)
+      mes_t_erp_accounts.each do |account|
+        key = "#{account.plant}.#{account.material}.#{account.work_center}"
+        account.sap_no_stock = sap_no_stocks.include?(key) ? 'X' : 'F'
+        account.save
+      end
     end # MesTErpAccount.find_by_sql(sql).each do |order|
   end
 

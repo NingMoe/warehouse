@@ -109,7 +109,7 @@ class MesTErpInItem < ActiveRecord::Base
       header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
       header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
       header.setValue('PR_UNAME', 'LUM.LIN')
-      header.setValue('HEADER_TXT', 'MES')
+      header.setValue('HEADER_TXT', 'MES IN ITEMS')
 
       lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
       msegs.each do |mseg|
