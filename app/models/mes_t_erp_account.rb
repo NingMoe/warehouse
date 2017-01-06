@@ -209,6 +209,11 @@ class MesTErpAccount < ActiveRecord::Base
                   end #mchbs[key].each do |mchb|
                 end
               end
+              if row.ws_bal_qty > 0 and resb.bal_qty > 0
+                row.sap_no_stock = 'X'
+              else
+                row.sap_no_stock = ' '
+              end
             end # mes_t_erp_accounts.each do |row|
           end #if resb.bal_qty > 0
         end # resbs.each do |resb|
@@ -217,6 +222,53 @@ class MesTErpAccount < ActiveRecord::Base
     end # MesTErpAccount.find_by_sql(sql).each do |order|
   end
 
+  def self.mo_over_issue
+    completed_minutes = 60 * 48 #min
+    sql = "
+      select b.id, a.project_id,a.sap_workcenter,b.material,(b.quantity - b.sap_posted_qty - mes_inter_qty) balqty
+        from v_closed_mo a
+          join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
+        where  ((sysdate - a.due_date)*24*60) > #{completed_minutes}
+        order by a.project_id,a.sap_workcenter,b.material
+    "
+    result_set = MesTErpAccount.find_by_sql(sql)
+    result_set.group_by(& :project_id).each do |project_id, accounts|
+      resb_conditions = []
+      over_issues = {}
+      accounts.each do |account|
+        resb_condition = "('#{account.plant}','#{account.material}','#{account.sap_workcenter}')"
+        resb_conditions.append(resb_condition) if not resb_conditions.include?(resb_condition)
+        key = "#{account.plant}.#{account.material}.#{account.sap_workcenter}"
+        over_issues[key] = 0 unless over_issues.key?(key)
+        over_issues[key] += account.balqty
+      end
+      sql = "
+        select a.werks, a.matnr, d.arbpl, a.rsnum, a.rspos
+          from sapsr3.resb a
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+            left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
+                and (a.werks,a.matnr,d.arbpl) in (#{resb_conditions.join(',')})
+      "
+      resbs = Sapdb.find_by_sql([sql, project_id])
+      resbs.each do |resb|
+        key = "#{resb.werks}.#{resb.matnr}.#{resb.arbpl}"
+        ws_qty = over_issues[key]
+        new_rspos = create_sap_resb(resb.rsnum, resb.rspos, ws_qty)
+        if new_rspos.present?
+          accounts.each do |account|
+            if account.plant.eql?(resb.werks) and
+                account.material.eql?(resb.matnr) and
+                account.sap_workcenter.eql?(resb.arbpl)
+                t_account = MesTErpAccount.find(account.id)
+                t_account.sap_add_resb_qty = t_account.quantity - t_account.sap_posted_qty - t_account.mes_inter_qty
+                t_account.save
+            end
+          end
+        end
+      end
+    end
+  end
 
   def self.bapi_goodsmvt_create_261(mes_t_erp_accounts)
     perform_posting = false
@@ -287,7 +339,7 @@ class MesTErpAccount < ActiveRecord::Base
           mes_t_erp_accounts.each do |account|
             account.ws_movements.each do |hash|
               line_id += 10
-              menge =  account.move_type.eql?('262') ? hash[:menge] * -1 : hash[:menge]
+              menge = account.move_type.eql?('262') ? hash[:menge] * -1 : hash[:menge]
               MesTErpAccountIss.create(
                   uuid: UUID.new.generate(:compact),
                   tea_id: account.id,
@@ -335,94 +387,52 @@ class MesTErpAccount < ActiveRecord::Base
     end
   end
 
-  def self.test
-
+  def self.create_sap_resb(rsnum, rspos, bdmng)
     begin
+      new_rspos = rspos.to_i + 5000
       dest = JCoDestinationManager.getDestination('sap_prd')
       repos = dest.getRepository
       commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
       commit.getImportParameterList().setValue('WAIT', 'X')
 
-      function = repos.getFunction('BAPI_GOODSMVT_CREATE')
-      function.getImportParameterList().getStructure('GOODSMVT_CODE').setValue('GM_CODE', '03')
+      function = repos.getFunction('Z_CREATE_RESERVATION')
+      lines = function.getTableParameterList().getTable('XRESB')
 
-      header = function.getImportParameterList().getStructure('GOODSMVT_HEADER')
-      header.setValue('PSTNG_DATE', Date.today.strftime('%Y%m%d'))
-      header.setValue('DOC_DATE', Date.today.strftime('%Y%m%d'))
-      header.setValue('PR_UNAME', 'LUM.LIN')
-      header.setValue('HEADER_TXT', '001100114051')
-
-      lines = function.getTableParameterList().getTable('GOODSMVT_ITEM')
-
-      sql = "
-        select a.aufnr,a.matnr,a.rsnum,a.rspos,a.rsart,a.lgort,a.bdmng,a.enmng,a.werks
-          from sapsr3.resb a
-        where a.mandt='168' and a.aufnr='001100114051' and a.matnr='121282-4'
-      "
-      resbs = Sapdb.find_by_sql(sql)
+      sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=?"
+      resbs = Sapdb.find_by_sql([sql, rsnum, rspos])
       resbs.each do |resb|
         lines.appendRow()
-        lines.setValue('MATERIAL', resb.matnr)
-        lines.setValue('PLANT', resb.werks)
-        lines.setValue('BATCH', '1610015891')
-        #lines.setValue('STGE_LOC','ZPUR')
-        #lines.setValue('MOVE_TYPE', '261')
-        lines.setValue('XSTOB', 'X') #if 262
-        lines.setValue('ORDERID', resb.aufnr)
-        lines.setValue('RESERV_NO', resb.rsnum)
-        lines.setValue('RES_ITEM', resb.rspos)
-        lines.setValue('RES_TYPE', resb.rsart)
-        #lines.setValue('ENTRY_QNT', resb.bdmng)
-        lines.setValue('ENTRY_QNT', 1)
+        resb.attributes.each do |k, v|
+          lines.setValue(k.upcase, v) if v.present?
+        end
+        lines.setValue('RSPOS', "#{new_rspos}")
+        lines.setValue('OBJNR', "OK#{rsnum}#{new_rspos}")
+        lines.setValue('BDMNG', bdmng)
+        lines.setValue('ENMNG', '')
+        lines.setValue('ENWRT', '')
+        lines.setValue('ERFMG', '')
+        lines.setValue('VMENG', '')
+        lines.setValue('POSNR', 'Z002')
       end
-
       com.sap.conn.jco.JCoContext.begin(dest)
       function.execute(dest)
-
-      returnMessage = function.getTableParameterList().getTable('RETURN')
-      (1..returnMessage.getNumRows).each do |i|
-        puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
-        returnMessage.nextRow
-      end
-
-      #commit.execute(dest)
+      commit.execute(dest)
       com.sap.conn.jco.JCoContext.end(dest)
 
     rescue Exception => exception
-      puts exception
-    end
-  end
-
-  def self.create_sap_resb(rsnum, rspos)
-    new_rspos = rspos.to_i + 5000
-    dest = JCoDestinationManager.getDestination('sap_prd')
-    repos = dest.getRepository
-    commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
-    commit.getImportParameterList().setValue('WAIT', 'X')
-
-    function = repos.getFunction('Z_CREATE_RESERVATION')
-    lines = function.getTableParameterList().getTable('XRESB')
-
-    sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=?"
-    resbs = Sapdb.find_by_sql([sql, rsnum, rspos])
-    resbs.each do |resb|
-      lines.appendRow()
-      resb.attributes.each do |k, v|
-        lines.setValue(k.upcase, v) if v.present?
+      Mail.defaults do
+        delivery_method :smtp, address: '172.91.1.253', port: 25
       end
-      lines.setValue('RSPOS', "#{new_rspos}")
-      lines.setValue('OBJNR', "OK#{rsnum}#{new_rspos}")
-      lines.setValue('BDMNG', '0')
-      lines.setValue('ENMNG', '0')
-      lines.setValue('ENWRT', '0')
-      lines.setValue('ERFMG', '0')
-      lines.setValue('VMENG', '0')
-      lines.setValue('POSNR', 'Z002')
+      message = "#{message} #{exception.message} #{exception.backtrace.join('\n')}"
+
+      Mail.deliver do
+        from 'lum.cl@l-e-i.com'
+        to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
+        subject 'mes_t_erp_out_item bapi_goodsmvt_create_311'
+        body message
+      end
+      new_rspos = nil
     end
-    com.sap.conn.jco.JCoContext.begin(dest)
-    function.execute(dest)
-    commit.execute(dest)
-    com.sap.conn.jco.JCoContext.end(dest)
     new_rspos
   end
 
