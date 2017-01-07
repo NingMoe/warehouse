@@ -76,6 +76,25 @@ class PoReceiptsController < ApplicationController
     end
   end
 
+  def search_barcode
+    @po_receipts = []
+    check = "#{params[:matnr]}#{params[:charg]}#{params[:lifnr]}#{params[:lifdn]}#{params[:entry_date]}"
+    if check.present?
+      sql = "
+        select b.sn_id,a.barcode,a.lifnr,a.lifdn,a.matnr,a.werks,a.date_code,a.mfg_date,a.entry_date,a.charg,a.menge
+          from po_receipt a
+            left join t_sn_id@leimes b on b.item_sn=a.barcode
+            where matnr like '%#{params[:matnr]}%'
+            and charg like '%#{params[:charg]}%'
+            and lifnr like '%#{params[:lifnr]}%'
+            and lifdn like '%#{params[:lifdn]}%'
+            and entry_date like '%#{params[:entry_date]}%'
+            order by matnr,charg,entry_date desc
+        "
+      @po_receipts = PoReceipt.find_by_sql(sql)
+    end
+  end
+
   def transfer_to_mes
     lifnr = @po_receipt.lifnr
     lifdn = @po_receipt.lifdn

@@ -116,7 +116,7 @@ en:
   wait_billing: '待建立DN發票清單'
   wait_goods_received: '待DN收貨清單'
   good_received: '收貨掃描'
-
+  search_barcode: '查找條碼ID'
 
   attributes:
     code: '編碼'

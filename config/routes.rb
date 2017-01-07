@@ -44,6 +44,7 @@ Rails.application.routes.draw do
     get :reprint_lot_label, on: :collection
     post :cfm_reprint_lot_label, on: :collection
     get :mseg_transfer_to_mes, on: :collection
+    get :search_barcode, on: :collection
     get :transfer_to_mes, on: :member
   end
 

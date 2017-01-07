@@ -196,7 +196,7 @@ class MesTErpAccount < ActiveRecord::Base
                 key = "#{row.plant}.#{row.material}.#{row.bacth}"
                 if mchbs.key?(key)
                   mchbs[key].each do |mchb|
-                    if mchb.clabs > 0 and mchb.lgort.eql?('MES')
+                    if mchb.clabs > 0
                       mchb_qty = row.ws_bal_qty > mchb.clabs ? mchb.clabs : row.ws_bal_qty
                       resb_qty = resb.bal_qty > mchb_qty ? mchb_qty : resb.bal_qty
                       row.ws_bal_qty -= resb_qty
@@ -231,6 +231,97 @@ class MesTErpAccount < ActiveRecord::Base
     end # MesTErpAccount.find_by_sql(sql).each do |order|
   end
 
+  def self.mo_over_issue_post
+    sql = "select order_id from t_erp_account where status='10' and quantity > 0 and move_type='261' and sap_add_resb_qty > 0 group by order_id order by order_id"
+    MesTErpAccount.find_by_sql(sql).each do |order|
+      mat_lot_refs = []
+      mes_t_erp_accounts = MesTErpAccount
+                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 5 and sap_add_resb_qty > 0")
+                               .order(id: :asc)
+      mes_t_erp_accounts.each do |row|
+        MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
+        row.ws_bal_qty = row.quantity - row.sap_posted_qty - row.mes_inter_qty
+        row.ws_alloc_qty = 0
+        row.ws_locations = []
+        row.ws_movements = []
+        mat_lot_ref = "('#{row.plant}','#{row.material}','#{row.bacth}')"
+        mat_lot_refs.append mat_lot_ref unless mat_lot_refs.include?(mat_lot_ref)
+      end
+
+      # get sap current location stock on hand
+      mchbs = {}
+      while mat_lot_refs.present?
+        sql = "
+          select matnr,werks,lgort,charg,clabs from sapsr3.mchb
+          where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
+            and clabs > 0
+        "
+        Sapdb.find_by_sql(sql).each do |row|
+          key = "#{row.werks}.#{row.matnr}.#{row.charg}"
+          mchbs[key] = [] unless mchbs.key?(key)
+          mchbs[key].append(row)
+        end
+      end
+      sap_no_stocks = []
+      orders = order.order_id.split(',')
+      orders.each do |aufnr|
+        sql = "
+        select a.rsnum, a.rspos, a.matnr, a.werks, a.lgort, a.rsart,
+               a.bdmng, a.enmng, (a.bdmng - a.enmng) bal_qty,
+               a.posnr, d.arbpl, a.aufnr
+          from sapsr3.resb a
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+            left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
+      "
+        resbs = Sapdb.find_by_sql([sql, aufnr])
+        resbs.each do |resb|
+          if resb.bal_qty > 0
+            mes_t_erp_accounts.each do |row|
+              if row.ws_bal_qty > 0 and
+                  row.material.eql?(resb.matnr) and
+                  row.work_center.eql?(resb.arbpl) and
+                  row.plant.eql?(resb.werks)
+
+                key = "#{row.plant}.#{row.material}.#{row.bacth}"
+                if mchbs.key?(key)
+                  mchbs[key].each do |mchb|
+                    if mchb.clabs > 0
+                      mchb_qty = row.ws_bal_qty > mchb.clabs ? mchb.clabs : row.ws_bal_qty
+                      resb_qty = resb.bal_qty > mchb_qty ? mchb_qty : resb.bal_qty
+                      row.ws_bal_qty -= resb_qty
+                      row.ws_alloc_qty += resb_qty
+                      mchb.clabs -= resb_qty
+                      resb.bal_qty -= resb_qty
+                      if resb_qty > 0
+                        row.ws_movements.append({
+                                                    rsnum: resb.rsnum, rspos: resb.rspos, rsart: resb.rsart,
+                                                    lgort: mchb.lgort, menge: resb_qty, aufnr: aufnr, posnr: resb.posnr
+                                                })
+                      end
+                    end
+                    break if row.ws_bal_qty == 0
+                  end #mchbs[key].each do |mchb|
+                end
+              end
+            end # mes_t_erp_accounts.each do |row|
+          end #if resb.bal_qty > 0
+
+          key = "#{resb.werks}.#{resb.matnr}.#{resb.arbpl}"
+          sap_no_stocks.append(key) if resb.bal_qty > 0
+
+        end # resbs.each do |resb|
+      end
+      bapi_goodsmvt_create_261(mes_t_erp_accounts)
+      mes_t_erp_accounts.each do |account|
+        key = "#{account.plant}.#{account.material}.#{account.work_center}"
+        account.sap_no_stock = sap_no_stocks.include?(key) ? 'X' : 'F'
+        account.save
+      end
+    end # MesTErpAccount.find_by_sql(sql).each do |order|
+  end
+
+
   def self.mo_over_issue
     completed_in_minutes = 60 * 24 * 2.5 * 0 #min
     sql = "
@@ -239,9 +330,10 @@ class MesTErpAccount < ActiveRecord::Base
         from v_closed_mo a
           join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
         where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
-          and project_id in ('001100117907','001100116243','001100115995','001100117908','001100115860','001100115501')
-          and a.sap_workcenter='SMT-P6'
+          and a.is_check = 'Y'
           and b.move_type='261'
+          and (b.quantity - b.sap_posted_qty - mes_inter_qty) < 100
+          and (b.quantity - b.sap_posted_qty - mes_inter_qty) > 0
         order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
     "
     result_set = MesTErpAccount.find_by_sql(sql)
@@ -267,15 +359,17 @@ class MesTErpAccount < ActiveRecord::Base
       resbs.each do |resb|
         key = "#{resb.werks}.#{resb.matnr}.#{resb.arbpl}"
         ws_qty = over_issues[key]
-        new_rspos = create_sap_resb(resb.rsnum, resb.rspos, ws_qty)
-        if new_rspos.present?
-          accounts.each do |account|
-            if account.plant.eql?(resb.werks) and
-                account.material.eql?(resb.matnr) and
-                account.sap_workcenter.eql?(resb.arbpl)
+        if ws_qty > 0
+          new_rspos = create_sap_resb(resb.rsnum, resb.rspos, ws_qty)
+          if new_rspos.present?
+            accounts.each do |account|
+              if account.plant.eql?(resb.werks) and
+                  account.material.eql?(resb.matnr) and
+                  account.sap_workcenter.eql?(resb.arbpl)
                 t_account = MesTErpAccount.find(account.id)
                 t_account.sap_add_resb_qty = t_account.quantity - t_account.sap_posted_qty - t_account.mes_inter_qty
                 t_account.save
+              end
             end
           end
         end

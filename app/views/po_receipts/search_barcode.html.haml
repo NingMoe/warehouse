@@ -1,0 +1,62 @@
+= render 'po_receipts/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      查找已入庫條碼ID號 Search for barcode ID
+  .panel-body
+    = form_tag(search_barcode_po_receipts_path, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'matnr'}= t('material')
+        = text_field_tag 'matnr', params[:matnr], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'charg'}= t('lot')
+        = text_field_tag 'charg', params[:charg], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifnr'}= t('supplier')
+        = text_field_tag 'lifnr', params[:lifnr], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'lifdn'}= t('dlv_note')
+        = text_field_tag 'lifdn', params[:lifdn], class: 'form-control'
+      .form-group.col-xs-12.col-sm-3
+        %label{for: 'entry_date'}= t('scan_date')
+        = text_field_tag 'entry_date', params[:entry_date], class: 'form-control'
+
+      .form-group.col-xs-12.col-sm-2
+        %label 搜索
+        %br
+          = render 'layouts/search_button'
+
+  - if @po_receipts.present?
+    .table-responsive
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th ID
+            %th= t('material')
+            %th= t('lot')
+            %th= t('quantity')
+            %th= t('supplier')
+            %th= t('dlv_note')
+            %th= t('plant')
+            %th= t('scan_date')
+            %th= t('date_code')
+        %tbody
+          - @po_receipts.each do |row|
+            %tr
+              %td{rowspan: 2}
+                = row.sn_id
+              %td= row.matnr
+              %td= row.charg
+              %td= row.menge
+              %td= row.lifnr
+              %td= row.lifdn
+              %td= row.werks
+              %td= row.entry_date
+              %td= row.date_code
+            %tr
+              %td{colspan: 8}
+                = row.barcode
+
+
