@@ -37,6 +37,7 @@
             %th= t('material')
             %th= t('lot')
             %th= t('quantity')
+            %th= t('pkg_no')
             %th= t('supplier')
             %th= t('dlv_note')
             %th= t('plant')
@@ -45,18 +46,19 @@
         %tbody
           - @po_receipts.each do |row|
             %tr
-              %td{rowspan: 2}
+              %th.text-center.text-large{rowspan: 2}
                 = row.sn_id
               %td= row.matnr
               %td= row.charg
-              %td= row.menge
+              %td.text-right= number_with_precision(row.menge, precision: 16, significant: true, strip_insignificant_zeros: true, delimiter: ',')
+              %td.text-center= row.pkg_no.to_i
               %td= row.lifnr
               %td= row.lifdn
               %td= row.werks
               %td= row.entry_date
               %td= row.date_code
             %tr
-              %td{colspan: 8}
+              %th{colspan: 9}
                 = row.barcode
 
 
