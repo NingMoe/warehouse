@@ -146,7 +146,7 @@ class MesTErpAccount < ActiveRecord::Base
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
       mes_t_erp_accounts = MesTErpAccount
-                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 1")
+                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 5")
                                .order(id: :asc)
       mes_t_erp_accounts.each do |row|
         MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
@@ -232,13 +232,17 @@ class MesTErpAccount < ActiveRecord::Base
   end
 
   def self.mo_over_issue
-    completed_minutes = 60 * 48 #min
+    completed_in_minutes = 60 * 24 * 2.5 * 0 #min
     sql = "
-      select b.id, a.project_id,a.sap_workcenter,b.material,(b.quantity - b.sap_posted_qty - mes_inter_qty) balqty
+      select b.id, a.project_id,a.sap_workcenter,b.material,(b.quantity - b.sap_posted_qty - mes_inter_qty) balqty,
+             a.due_date, b.plant
         from v_closed_mo a
           join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
-        where  ((sysdate - a.due_date)*24*60) > #{completed_minutes}
-        order by a.project_id,a.sap_workcenter,b.material
+        where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
+          and project_id in ('001100117907','001100116243','001100115995','001100117908','001100115860','001100115501')
+          and a.sap_workcenter='SMT-P6'
+          and b.move_type='261'
+        order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
     "
     result_set = MesTErpAccount.find_by_sql(sql)
     result_set.group_by(& :project_id).each do |project_id, accounts|
@@ -421,6 +425,10 @@ class MesTErpAccount < ActiveRecord::Base
         lines.setValue('ENWRT', '')
         lines.setValue('ERFMG', '')
         lines.setValue('VMENG', '')
+        lines.setValue('VMENG', '')
+        lines.setValue('KZEAR', '')
+        lines.setValue('GPREIS', '')
+        lines.setValue('GPREIS_2', '')
         lines.setValue('POSNR', 'Z002')
       end
       com.sap.conn.jco.JCoContext.begin(dest)

@@ -23,7 +23,7 @@ class MesTErpOutItem < ActiveRecord::Base
 
   def self.compute(werks)
     while true do
-      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' '  and plant = ? and ((sysdate - updated_time)*24*60) > 15 and project_id is not null and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_out_items where status = ' '  and plant = ? and ((sysdate - updated_time)*24*60) > 5 and project_id is not null and rownum < 500"
       rows = MesTErpOutItem.find_by_sql([sql, werks])
       break if rows.blank?
       call_posting = false
@@ -84,7 +84,7 @@ class MesTErpOutItem < ActiveRecord::Base
             row.mjahr = mjahr
           else
             row.trf_qty -= row.ws_alloc_qty
-            row.status = 'E'
+            row.status = ' '
           end
           row.save
         end

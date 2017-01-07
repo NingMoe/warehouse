@@ -25,7 +25,7 @@ class MesTErpInItem < ActiveRecord::Base
   def self.compute(werks)
     while true do
       call_posting = false
-      sql = "select distinct plant,item_code,lot_no from t_erp_in_items where status = ' ' and plant = ? and ((sysdate - updated_time)*24*60) > 15 and project_id is not null and rownum < 500"
+      sql = "select distinct plant,item_code,lot_no from t_erp_in_items where status = ' ' and plant = ? and ((sysdate - updated_time)*24*60) > 5 and project_id is not null and rownum < 500"
       rows = MesTErpInItem.find_by_sql([sql, werks])
       break if rows.blank?
       mat_lot_refs = []
@@ -86,7 +86,7 @@ class MesTErpInItem < ActiveRecord::Base
             row.mjahr = mjahr
           else
             row.trf_qty -= row.ws_alloc_qty
-            row.status = 'E'
+            row.status = ' '
           end
           row.save
         end
