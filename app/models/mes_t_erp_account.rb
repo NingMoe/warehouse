@@ -22,6 +22,7 @@ class MesTErpAccount < ActiveRecord::Base
     adjustment
     mo_return
     mo_issue
+    #mes_overload
   end
 
   def self.adjustment
@@ -120,9 +121,16 @@ class MesTErpAccount < ActiveRecord::Base
           stk_return.ws_bal_qty += ws_qty
           stk_issue.menge -= ws_qty
           if ws_qty > 0
+            sql = "
+              select case when b.lgfsb = ' ' then b.lgpro else lgfsb end to_loc
+                from sapsr3.marc b
+                where b.mandt='168' and b.werks=? and b.matnr=?
+             "
+            marcs = Sapdb.find_by_sql([sql, stk_return.plant, stk_return.material])
+            lgort = marcs.present? ? marcs.first.to_loc : 'MES'
             stk_return.ws_movements.append({
                                                rsnum: stk_issue.rsnum, rspos: stk_issue.rspos, rsart: ' ',
-                                               lgort: 'MES', menge: ws_qty, aufnr: stk_return.order_id, posnr: stk_issue.posnr,
+                                               lgort: lgort, menge: ws_qty, aufnr: stk_return.order_id, posnr: stk_issue.posnr,
                                                move_type: '262'
                                            })
 
@@ -146,7 +154,7 @@ class MesTErpAccount < ActiveRecord::Base
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
       mes_t_erp_accounts = MesTErpAccount
-                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 5")
+                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 1")
                                .order(id: :asc)
       mes_t_erp_accounts.each do |row|
         MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
@@ -164,7 +172,7 @@ class MesTErpAccount < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
-            and clabs > 0 and lgort = 'MES'
+            and clabs > 0 order by lgort desc
         "
         Sapdb.find_by_sql(sql).each do |row|
           key = "#{row.werks}.#{row.matnr}.#{row.charg}"
@@ -231,12 +239,12 @@ class MesTErpAccount < ActiveRecord::Base
     end # MesTErpAccount.find_by_sql(sql).each do |order|
   end
 
-  def self.mo_over_issue_post
-    sql = "select order_id from t_erp_account where status='10' and quantity > 0 and move_type='261' and sap_add_resb_qty > 0 group by order_id order by order_id"
+  def self.mo_direct_posting
+    sql = "select order_id from t_erp_account where status='10' and quantity > 0 and move_type='261' and (sap_add_resb_qty > 0 or sap_no_stock='X') group by order_id order by order_id"
     MesTErpAccount.find_by_sql(sql).each do |order|
       mat_lot_refs = []
       mes_t_erp_accounts = MesTErpAccount
-                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 5 and sap_add_resb_qty > 0")
+                               .where(status: '10', order_id: order.order_id).where("quantity > 0 and move_type='261' and ((sysdate - updated_time)*24*60) > 0 and (sap_add_resb_qty > 0 or sap_no_stock='X')")
                                .order(id: :asc)
       mes_t_erp_accounts.each do |row|
         MesTErpAccount.connection.execute("update t_erp_account set updated_time = sysdate where id=#{row.id}")
@@ -322,8 +330,8 @@ class MesTErpAccount < ActiveRecord::Base
   end
 
 
-  def self.mo_over_issue
-    completed_in_minutes = 60 * 24 * 2.5 * 0 #min
+  def self.mes_overload
+    completed_in_minutes = 60 * 24 * 2 #min
     sql = "
       select b.id, a.project_id,a.sap_workcenter,b.material,(b.quantity - b.sap_posted_qty - mes_inter_qty) balqty,
              a.due_date, b.plant
@@ -362,6 +370,7 @@ class MesTErpAccount < ActiveRecord::Base
         if ws_qty > 0
           new_rspos = create_sap_resb(resb.rsnum, resb.rspos, ws_qty)
           if new_rspos.present?
+            puts "#{resb.rsnum}.#{new_rspos}"
             accounts.each do |account|
               if account.plant.eql?(resb.werks) and
                   account.material.eql?(resb.matnr) and
@@ -496,7 +505,10 @@ class MesTErpAccount < ActiveRecord::Base
 
   def self.create_sap_resb(rsnum, rspos, bdmng)
     begin
-      new_rspos = rspos.to_i + 5000
+      sql = "select max(rspos) rspos from sapsr3.resb where mandt='168' and rsnum=?"
+      resbs = Sapdb.find_by_sql([sql,rsnum])
+      new_rspos = resbs.first.rspos.to_i + 1
+      #new_rspos = rspos.to_i + 5000
       dest = JCoDestinationManager.getDestination('sap_prd')
       repos = dest.getRepository
       commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
@@ -513,16 +525,16 @@ class MesTErpAccount < ActiveRecord::Base
           lines.setValue(k.upcase, v) if v.present?
         end
         lines.setValue('RSPOS', "#{new_rspos}")
-        lines.setValue('OBJNR', "OK#{rsnum}#{new_rspos}")
+        #lines.setValue('OBJNR', "OK#{rsnum}#{new_rspos}")
         lines.setValue('BDMNG', bdmng)
         lines.setValue('ENMNG', '')
         lines.setValue('ENWRT', '')
         lines.setValue('ERFMG', '')
         lines.setValue('VMENG', '')
-        lines.setValue('VMENG', '')
         lines.setValue('KZEAR', '')
         lines.setValue('GPREIS', '')
         lines.setValue('GPREIS_2', '')
+        lines.setValue('POTX2', 'MES_OVERLOAD')
         lines.setValue('POSNR', 'Z002')
       end
       com.sap.conn.jco.JCoContext.begin(dest)

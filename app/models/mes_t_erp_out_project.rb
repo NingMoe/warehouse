@@ -18,7 +18,7 @@ class MesTErpOutProject < ActiveRecord::Base
     matkls = rows.first.matkl
 
     while true
-      project = MesTErpOutProject.find_by("status=' ' and ((sysdate - updated_time)*24*60) > 15")
+      project = MesTErpOutProject.find_by("status=' ' and ((sysdate - updated_time)*24*60) > 1")
       break if project.blank?
 
       MesTErpOutProject.connection.execute("update t_erp_out_project set updated_time = sysdate where teop_id=#{project.teop_id}")
