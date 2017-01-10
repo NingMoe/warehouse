@@ -16,9 +16,16 @@ class MesTErpPoItem < ActiveRecord::Base
       MesTErpPoItem.transaction do
         if row.use_flag.to_i == 1
           po_receipt_line = po_receipt.po_receipt_lines.first
+          if po_receipt_line.present?
+            ebeln = po_receipt_line.ebeln
+            ebelp = po_receipt_line.ebelp
+          else
+            ebeln = po_receipt.lifdn
+            ebelp = '0000'
+          end
           MesTErpPoItem.create(
-              po_number: po_receipt_line.ebeln,
-              item_line: po_receipt_line.ebelp,
+              po_number: ebeln,
+              item_line: ebelp,
               item_code: po_receipt.matnr,
               item_num: 0,
               item_lot: po_receipt.charg,
