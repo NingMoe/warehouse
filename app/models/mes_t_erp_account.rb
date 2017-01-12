@@ -225,7 +225,6 @@ class MesTErpAccount < ActiveRecord::Base
               end
 
 
-
             end # mes_t_erp_accounts.each do |row|
           end #if resb.bal_qty > 0
 
@@ -511,7 +510,7 @@ class MesTErpAccount < ActiveRecord::Base
   def self.create_sap_resb(rsnum, rspos, bdmng)
     begin
       sql = "select max(rspos) rspos from sapsr3.resb where mandt='168' and rsnum=?"
-      resbs = Sapdb.find_by_sql([sql,rsnum])
+      resbs = Sapdb.find_by_sql([sql, rsnum])
       new_rspos = resbs.first.rspos.to_i + 1
       #new_rspos = rspos.to_i + 5000
       dest = JCoDestinationManager.getDestination('sap_prd')
