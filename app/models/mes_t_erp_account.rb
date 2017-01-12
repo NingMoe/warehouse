@@ -188,7 +188,7 @@ class MesTErpAccount < ActiveRecord::Base
                a.bdmng, a.enmng, (a.bdmng - a.enmng) bal_qty,
                a.posnr, d.arbpl, a.aufnr
           from sapsr3.resb a
-                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
             left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
           where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
       "
