@@ -22,7 +22,7 @@ class MesTErpAccount < ActiveRecord::Base
     adjustment
     mo_return
     mo_issue
-    #mes_overload
+    mes_overload
   end
 
   def self.adjustment
@@ -342,6 +342,7 @@ class MesTErpAccount < ActiveRecord::Base
           join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
         where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
           and a.is_check = 'Y'
+          and b.work_center is not null
           and b.move_type='261'
           and (
             ((b.quantity - b.sap_posted_qty - mes_inter_qty) < 100  and ((b.quantity - b.sap_posted_qty - mes_inter_qty) > 0))
