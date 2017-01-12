@@ -22,7 +22,7 @@ class MesTErpAccount < ActiveRecord::Base
     adjustment
     mo_return
     mo_issue
-    mes_overload
+    #mes_overload
   end
 
   def self.adjustment
