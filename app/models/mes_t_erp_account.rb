@@ -196,9 +196,10 @@ class MesTErpAccount < ActiveRecord::Base
         resbs.each do |resb|
           if resb.bal_qty > 0
             mes_t_erp_accounts.each do |row|
+
               if row.ws_bal_qty > 0 and
                   row.material.eql?(resb.matnr) and
-                  row.work_center.eql?(resb.arbpl) and
+                  (row.work_center.eql?(resb.arbpl) or (row.work_center[0..2].eql?(resb.arbpl[0..2]))) and
                   row.plant.eql?(resb.werks)
 
                 key = "#{row.plant}.#{row.material}.#{row.bacth}"
@@ -222,6 +223,9 @@ class MesTErpAccount < ActiveRecord::Base
                   end #mchbs[key].each do |mchb|
                 end
               end
+
+
+
             end # mes_t_erp_accounts.each do |row|
           end #if resb.bal_qty > 0
 
