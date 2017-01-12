@@ -343,8 +343,9 @@ class MesTErpAccount < ActiveRecord::Base
         where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
           and a.is_check = 'Y'
           and b.move_type='261'
-          and (b.quantity - b.sap_posted_qty - mes_inter_qty) < 100
-          and (b.quantity - b.sap_posted_qty - mes_inter_qty) > 0
+          and (
+            ((b.quantity - b.sap_posted_qty - mes_inter_qty) < 100  and ((b.quantity - b.sap_posted_qty - mes_inter_qty) > 0))
+              or (b.overflow_flag = 'Y'))
         order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
     "
     result_set = MesTErpAccount.find_by_sql(sql)
