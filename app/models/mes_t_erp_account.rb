@@ -22,7 +22,7 @@ class MesTErpAccount < ActiveRecord::Base
     adjustment
     mo_return
     mo_issue
-    mes_overload
+    #mes_overload
   end
 
   def self.adjustment
@@ -336,7 +336,7 @@ class MesTErpAccount < ActiveRecord::Base
   def self.mes_overload
     completed_in_minutes = 60 * 24 * 2 #min
     sql = "
-      select b.id, a.project_id,a.sap_workcenter,b.material,(b.quantity - b.sap_posted_qty - mes_inter_qty) balqty,
+      select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
              a.due_date, b.plant
         from v_closed_mo a
           join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
@@ -344,9 +344,7 @@ class MesTErpAccount < ActiveRecord::Base
           and a.is_check = 'Y'
           and b.work_center is not null
           and b.move_type='261'
-          and (
-            ((b.quantity - b.sap_posted_qty - mes_inter_qty) < 100  and ((b.quantity - b.sap_posted_qty - mes_inter_qty) > 0))
-              or (b.overflow_flag = 'Y'))
+          and ((b.balqty between 0 and 100) or (b.overflow_flag = 'Y'))
         order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
     "
     result_set = MesTErpAccount.find_by_sql(sql)
@@ -523,7 +521,7 @@ class MesTErpAccount < ActiveRecord::Base
       function = repos.getFunction('Z_CREATE_RESERVATION')
       lines = function.getTableParameterList().getTable('XRESB')
 
-      sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=?"
+      sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=? and rownum=1"
       resbs = Sapdb.find_by_sql([sql, rsnum, rspos])
       resbs.each do |resb|
         lines.appendRow()
