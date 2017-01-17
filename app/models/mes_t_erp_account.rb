@@ -38,7 +38,7 @@ class MesTErpAccount < ActiveRecord::Base
                            .where(material: stk_return.material, order_id: stk_return.order_id, bacth: stk_return.bacth)
                            .order(:order_id)
           stk_issues.each do |stk_issue|
-            stk_issue.ws_bal_qty = stk_issue.quantity - stk_issue.sap_posted_qty - stk_return.mes_inter_qty
+            stk_issue.ws_bal_qty = stk_issue.quantity - stk_issue.sap_posted_qty - stk_issue.mes_inter_qty
             stk_issue.ws_alloc_qty = 0
             if stk_issue.ws_bal_qty > 0
               ws_qty = stk_return.ws_bal_qty.abs > stk_issue.ws_bal_qty.abs ? stk_issue.ws_bal_qty.abs : stk_return.ws_bal_qty.abs
