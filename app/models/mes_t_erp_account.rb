@@ -332,8 +332,44 @@ class MesTErpAccount < ActiveRecord::Base
     end # MesTErpAccount.find_by_sql(sql).each do |order|
   end
 
-
   def self.mes_overload
+    completed_in_minutes = 60 * 24 * 2 #min
+    sql = "
+      select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
+             a.due_date, b.plant
+        from v_closed_mo a
+          join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
+        where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
+          and a.is_check = 'Y'
+          and b.work_center is not null
+          and b.move_type='261'
+          and ((b.balqty between 0 and 100) or (b.overflow_flag = 'Y'))
+        order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
+    "
+    accounts = MesTErpAccount.find_by_sql(sql)
+    accounts.each do |account|
+      t_account = MesTErpAccount.find(account.id)
+      sql = "
+        select a.werks, a.matnr, d.arbpl, a.rsnum, a.rspos
+          from sapsr3.resb a
+            join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
+            join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and a.matnr=? and d.arbpl=?
+            and rownum = 1
+      "
+      resbs = Sapdb.find_by_sql([sql, t_account.order_id, t_account.material, t_account.work_center])
+      if resbs.present?
+        resb = resbs.first
+        new_rspos = create_sap_resb(resb.rsnum, resb.rspos, t_account.balqty)
+        if new_rspos.present?
+          t_account.sap_add_resb_qty = t_account.balqty
+          t_account.save
+        end
+      end
+    end
+  end
+
+  def self.mes_overload_old
     completed_in_minutes = 60 * 24 * 2 #min
     sql = "
       select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
