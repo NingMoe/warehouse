@@ -519,7 +519,7 @@ class MesTErpAccount < ActiveRecord::Base
             end
           end
         end
-      else #posting error
+        #else #posting error
         # mes_t_erp_accounts.each do |account|
         #   account.status = 'E'
         #   account.save
