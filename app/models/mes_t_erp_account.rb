@@ -520,10 +520,10 @@ class MesTErpAccount < ActiveRecord::Base
           end
         end
       else #posting error
-        mes_t_erp_accounts.each do |account|
-          account.status = 'E'
-          account.save
-        end
+        # mes_t_erp_accounts.each do |account|
+        #   account.status = 'E'
+        #   account.save
+        # end
       end
       commit.execute(dest)
       com.sap.conn.jco.JCoContext.end(dest)
