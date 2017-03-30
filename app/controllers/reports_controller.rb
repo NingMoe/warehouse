@@ -10,5 +10,11 @@ class ReportsController < ApplicationController
               filename: "#{controller_name}_#{action_name}.xlsx"
   end
 
+  def check_dup_point
+    @rows = []
+    if params[:aufnrs].present?
+      @rows = MesTErpMoPoint.check_dup_point(text_area_to_array(params[:aufnrs]))
+    end
+  end
 
 end

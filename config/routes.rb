@@ -50,6 +50,7 @@ Rails.application.routes.draw do
 
   resources :reports do
     get :open_sto_list, on: :collection
+    get :check_dup_point, on: :collection
   end
 
   resources :user_ldaps do

@@ -12,6 +12,8 @@
         %li= link_to t('allocated_po'), allocated_po_po_receipts_path
 
   %li= link_to t('barcode_receipt'), home_po_receipts_path
+  %li= link_to t('檢查工單點位'), check_dup_point_reports_url
+
   %li.dropdown
     %a.dropdown-toggle{data: {toggle: "dropdown"}, href: "#"}
       = current_user.email.split('@').first

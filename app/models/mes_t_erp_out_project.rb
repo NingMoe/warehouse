@@ -27,7 +27,7 @@ class MesTErpOutProject < ActiveRecord::Base
                a.bdmng, a.enmng, (a.bdmng - a.enmng) bal_qty,
                a.posnr, d.arbpl, a.aufnr
           from sapsr3.resb a
-                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
                  join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda and d.arbpl=?
           where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and (a.bdmng - a.enmng) > 0
             and a.matkl in (#{matkls})
@@ -42,6 +42,7 @@ class MesTErpOutProject < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
             where mandt='168' and (werks,matnr) in (#{mat_refs.join(',')}) and clabs > 0
+            and lgort not in ('RWNG')
             order by werks,matnr,charg,lgort
         "
         mchbs = {}

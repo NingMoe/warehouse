@@ -3,6 +3,7 @@ class MesTErpPoItem < ActiveRecord::Base
   establish_connection :leimes
 
   def self.transfer_to_mes(po_receipt_id)
+    transfer_matkls = %w[25-06 25-10]
     sql = "
         select a.uuid,b.matkl,c.use_flag
           from po_receipt a
@@ -14,7 +15,7 @@ class MesTErpPoItem < ActiveRecord::Base
     po_receipts.each do |row|
       po_receipt = PoReceipt.find(row.uuid)
       MesTErpPoItem.transaction do
-        if row.use_flag.to_i == 1
+        if row.use_flag.to_i == 1 or transfer_matkls.include?(row.matkl)
           po_receipt_line = po_receipt.po_receipt_lines.first
           if po_receipt_line.present?
             ebeln = po_receipt_line.ebeln
@@ -50,6 +51,7 @@ class MesTErpPoItem < ActiveRecord::Base
   def self.insert_record
     while true do
       #po_receipts = PoReceipt.where(mes_trf_sts: ' ', status: '30').limit(1000)
+      transfer_matkls = %w[25-06 25-10]
       sql = "
         select a.uuid,b.matkl,c.use_flag
           from po_receipt a
@@ -62,7 +64,7 @@ class MesTErpPoItem < ActiveRecord::Base
       po_receipts.each do |row|
         po_receipt = PoReceipt.find(row.uuid)
         MesTErpPoItem.transaction do
-          if row.use_flag.to_i == 1
+          if row.use_flag.to_i == 1 or transfer_matkls.include?(row.matkl)
             po_receipt_line = po_receipt.po_receipt_lines.first
             MesTErpPoItem.create(
                 po_number: po_receipt_line.ebeln,

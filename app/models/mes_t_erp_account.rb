@@ -172,6 +172,7 @@ class MesTErpAccount < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
+            and lgort not in ('RWNG')
             and clabs > 0 order by lgort desc
         "
         Sapdb.find_by_sql(sql).each do |row|
@@ -265,6 +266,7 @@ class MesTErpAccount < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
+            and lgort not in ('RWNG')
             and clabs > 0
         "
         Sapdb.find_by_sql(sql).each do |row|
@@ -477,11 +479,13 @@ class MesTErpAccount < ActiveRecord::Base
       com.sap.conn.jco.JCoContext.begin(dest)
       function.execute(dest)
 
+      sap_msg_texts = []
       posting_success = true
       returnMessage = function.getTableParameterList().getTable('RETURN')
       (1..returnMessage.getNumRows).each do |i|
         puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
         if returnMessage.getString('TYPE').eql?('E')
+          sap_msg_texts.append("#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}")
           posting_success = false
         end
         returnMessage.nextRow
@@ -519,11 +523,18 @@ class MesTErpAccount < ActiveRecord::Base
             end
           end
         end
-        #else #posting error
-        # mes_t_erp_accounts.each do |account|
-        #   account.status = 'E'
-        #   account.save
-        # end
+      else #posting error
+        Mail.defaults do
+          delivery_method :smtp, address: '172.91.1.253', port: 25
+        end
+        message = "#{sap_msg_texts.join('\n')}"
+
+        Mail.deliver do
+          from 'lum.cl@l-e-i.com'
+          to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
+          subject 'mes_t_erp_account bapi_goodsmvt_create_261'
+          body message
+        end
       end
       commit.execute(dest)
       com.sap.conn.jco.JCoContext.end(dest)
@@ -545,7 +556,7 @@ class MesTErpAccount < ActiveRecord::Base
 
   def self.create_sap_resb(rsnum, rspos, bdmng)
     begin
-      sql = "select max(rspos) rspos from sapsr3.resb where mandt='168' and rsnum=?"
+      sql = "select nvl(max(rspos),8000) rspos from sapsr3.resb where mandt='168' and rsnum=? and rspos between '8000' and '9000'"
       resbs = Sapdb.find_by_sql([sql, rsnum])
       new_rspos = resbs.first.rspos.to_i + 1
       #new_rspos = rspos.to_i + 5000
@@ -575,6 +586,7 @@ class MesTErpAccount < ActiveRecord::Base
         lines.setValue('GPREIS', '')
         lines.setValue('GPREIS_2', '')
         lines.setValue('POTX2', 'MES_OVERLOAD')
+        lines.setValue('POTX1', 'MES_OVERLOAD')
         lines.setValue('POSNR', 'Z002')
       end
       com.sap.conn.jco.JCoContext.begin(dest)
@@ -591,7 +603,7 @@ class MesTErpAccount < ActiveRecord::Base
       Mail.deliver do
         from 'lum.cl@l-e-i.com'
         to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
-        subject 'mes_t_erp_out_item bapi_goodsmvt_create_311'
+        subject "create_sap_resb #{rsnum} #{rspos}"
         body message
       end
       new_rspos = nil
