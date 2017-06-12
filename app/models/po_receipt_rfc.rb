@@ -157,13 +157,14 @@ class PoReceiptRfc
 
   end
 
-  def self.sap_posting_manual
+  def self.sap_posting_manual(lifnr, lifdn)
     sql = "
-      select a.lifnr,a.lifdn,a.werks,nvl(b.invnr,' ')invnr
+      select a.lifnr,a.lifdn,a.werks,nvl(b.invnr,' ')invnr,a.charg,a.uuid
         from po_receipt a
           join po_receipt_line b on b.po_receipt_id = a.uuid
         where a.status='20' and a.rfc_sts = 'E' and b.status = '20'
-        group by a.lifnr,a.lifdn,a.werks,nvl(b.invnr,' ')
+          and lifnr='#{lifnr}' and lifdn='#{lifdn}'
+        group by a.lifnr,a.lifdn,a.werks,nvl(b.invnr,' '),a.charg,a.uuid
     "
     dlv_notes = PoReceipt.find_by_sql(sql)
     dlv_notes.each do |dlv_note|
@@ -198,11 +199,11 @@ class PoReceiptRfc
           from po_receipt a
             join po_receipt_line b on b.po_receipt_id = a.uuid
           where a.status='20' and b.status='20' and a.lifnr = ? and a.lifdn = ?
-            and a.werks=? and nvl(b.invnr,' ') = ?
+            and a.werks=? and nvl(b.invnr,' ') = ? and a.charg=? and a.uuid =?
           group by a.lifnr,a.lifdn,a.matnr,a.werks,a.charg,a.date_code,a.mfg_date,a.entry_date,
                    b.ebeln,b.ebelp,b.impnr,b.impim,b.invnr,b.meins
       "
-        pos = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr])
+        pos = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr, dlv_note.charg, dlv_note.uuid])
         pos.each do |po|
           lines.appendRow()
           lines.setValue('MATERIAL', po.matnr)
@@ -266,9 +267,9 @@ class PoReceiptRfc
             from po_receipt a
               join po_receipt_line b on b.po_receipt_id = a.uuid
             where a.status='20' and b.status='20' and a.lifnr = ? and a.lifdn = ?
-              and a.werks=? and nvl(b.invnr,' ') = ?
+              and a.werks=? and nvl(b.invnr,' ') = ? and a.charg=? and a.uuid = ?
         "
-        ids = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr])
+        ids = PoReceipt.find_by_sql([sql, dlv_note.lifnr, dlv_note.lifdn, dlv_note.werks, dlv_note.invnr, dlv_note.charg, dlv_note.uuid])
 
         PoReceipt.transaction do
           if posting_success

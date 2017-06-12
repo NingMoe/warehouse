@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
 
+  resources :saprfcs do
+    get :dn_pack_qty, on: :collection
+  end
+
   resources :rfc_msgs do
     get :msg, on: :collection
   end

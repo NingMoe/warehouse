@@ -118,7 +118,7 @@ class PoReceiptsController < ApplicationController
         "
         po_receipts = Sapdb.find_by_sql(sql)
         po_receipts.each do |po_receipt|
-          MesTErpPoItem.create(
+          MesTErpPoItem.create!(
               po_number: po_receipt.ebeln,
               item_line: po_receipt.ebelp,
               item_code: po_receipt.matnr,

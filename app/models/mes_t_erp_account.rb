@@ -19,10 +19,31 @@ class MesTErpAccount < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.start
+    check_mo_close
     adjustment
     mo_return
     mo_issue
     mes_overload
+  end
+
+  def self.check_mo_close
+    sql = "select distinct order_id from t_erp_account where status = '10' group by order_id"
+    order_ids = MesTErpAccount.find_by_sql(sql)
+    order_ids.each do |row|
+      mo_close = true
+      aufnrs = row.order_id.split(',')
+      aufnrs.each do |aufnr|
+        sql = "select count(*) cnt from sapsr3.jest b where b.mandt='168' and b.objnr=? and b.inact=' ' and b.stat in ('I0045','I0046')"
+        rows = Sapdb.find_by_sql([sql, "OR#{aufnr}"])
+        if rows.first.cnt == 0
+          mo_close = false
+        end
+      end
+      if mo_close
+        sql = "update t_erp_account set status='TK' where status = '10' and order_id = '#{row.order_id}'"
+        MesTErpAccount.connection.execute(sql)
+      end
+    end
   end
 
   def self.adjustment
@@ -172,7 +193,7 @@ class MesTErpAccount < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
-            and lgort not in ('RWNG')
+            and lgort not in ('RWNG','NNNN')
             and clabs > 0 order by lgort desc
         "
         Sapdb.find_by_sql(sql).each do |row|
@@ -192,7 +213,8 @@ class MesTErpAccount < ActiveRecord::Base
                  join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
             left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
           where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
-      "
+            order by a.matnr, a.posnr
+        "
         resbs = Sapdb.find_by_sql([sql, aufnr])
         resbs.each do |resb|
           if resb.bal_qty > 0
@@ -266,7 +288,7 @@ class MesTErpAccount < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
           where mandt='168' and (werks,matnr,charg) in (#{mat_lot_refs.pop(500).join(',')})
-            and lgort not in ('RWNG')
+            and lgort not in ('RWNG','NNNN')
             and clabs > 0
         "
         Sapdb.find_by_sql(sql).each do |row|
@@ -285,7 +307,7 @@ class MesTErpAccount < ActiveRecord::Base
           from sapsr3.resb a
                  join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
             left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
-          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.kzear=' ' and a.aufnr=?
       "
         resbs = Sapdb.find_by_sql([sql, aufnr])
         resbs.each do |resb|
@@ -335,7 +357,20 @@ class MesTErpAccount < ActiveRecord::Base
   end
 
   def self.mes_overload
-    completed_in_minutes = 60 * 24 * 2 #min
+    # "
+    # select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
+    #        a.due_date, b.plant
+    # from v_closed_mo a
+    # join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
+    # where
+    # (((b.balqty between 0 and 100) or (b.overflow_flag = 'Y')) or
+    #     ((((sysdate - a.due_date)*24*60) > 60 * 24 * 2) and b.balqty > 100))
+    # and a.is_check = 'Y'
+    # and b.work_center is not null
+    # and b.move_type='261'
+    # order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
+    # "
+    completed_in_minutes = 60 * 24 * 2 * 0 #min
     sql = "
       select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
              a.due_date, b.plant
@@ -352,76 +387,32 @@ class MesTErpAccount < ActiveRecord::Base
     accounts.each do |account|
       t_account = MesTErpAccount.find(account.id)
       sql = "
-        select a.werks, a.matnr, d.arbpl, a.rsnum, a.rspos
+        select a.werks, a.matnr, d.arbpl, a.rsnum, a.rspos, a.potx2
           from sapsr3.resb a
             join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
             join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
           where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and a.matnr=? and d.arbpl=?
-            and rownum = 1
       "
       resbs = Sapdb.find_by_sql([sql, t_account.order_id, t_account.material, t_account.work_center])
+      record_created = false
       if resbs.present?
-        resb = resbs.first
-        new_rspos = create_sap_resb(resb.rsnum, resb.rspos, t_account.balqty)
-        if new_rspos.present?
-          t_account.sap_add_resb_qty = t_account.balqty
-          t_account.save
+        key = "MES_TEA_ID:#{t_account.id}"
+        puts key
+        resbs.each do |resb|
+          if resb.potx2.eql?(key)
+            record_created = true
+            t_account.sap_add_resb_qty = t_account.balqty
+            t_account.save
+            break
+          end
         end
-      end
-    end
-  end
 
-  def self.mes_overload_old
-    completed_in_minutes = 60 * 24 * 2 #min
-    sql = "
-      select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
-             a.due_date, b.plant
-        from v_closed_mo a
-          join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
-        where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
-          and a.is_check = 'Y'
-          and b.work_center is not null
-          and b.move_type='261'
-          and ((b.balqty between 0 and 100) or (b.overflow_flag = 'Y'))
-        order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
-    "
-    result_set = MesTErpAccount.find_by_sql(sql)
-    result_set.group_by(& :project_id).each do |project_id, accounts|
-      resb_conditions = []
-      over_issues = {}
-      accounts.each do |account|
-        resb_condition = "('#{account.plant}','#{account.material}','#{account.sap_workcenter}')"
-        resb_conditions.append(resb_condition) if not resb_conditions.include?(resb_condition)
-        key = "#{account.plant}.#{account.material}.#{account.sap_workcenter}"
-        over_issues[key] = 0 unless over_issues.key?(key)
-        over_issues[key] += account.balqty
-      end
-      sql = "
-        select a.werks, a.matnr, d.arbpl, a.rsnum, a.rspos
-          from sapsr3.resb a
-                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
-            left join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
-          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=?
-                and (a.werks,a.matnr,d.arbpl) in (#{resb_conditions.join(',')})
-      "
-      resbs = Sapdb.find_by_sql([sql, project_id])
-      resbs.each do |resb|
-        key = "#{resb.werks}.#{resb.matnr}.#{resb.arbpl}"
-        ws_qty = over_issues[key]
-        if ws_qty > 0
-          puts "#{resb.rsnum}.#{resb.rspos}"
-          new_rspos = create_sap_resb(resb.rsnum, resb.rspos, ws_qty)
+        if record_created == false and t_account.balqty > 0
+          resb = resbs.first
+          new_rspos = create_sap_resb(resb.rsnum, resb.rspos, t_account.balqty, key)
           if new_rspos.present?
-            puts "#{resb.rsnum}.#{new_rspos}"
-            accounts.each do |account|
-              if account.plant.eql?(resb.werks) and
-                  account.material.eql?(resb.matnr) and
-                  account.sap_workcenter.eql?(resb.arbpl)
-                t_account = MesTErpAccount.find(account.id)
-                t_account.sap_add_resb_qty = t_account.quantity - t_account.sap_posted_qty - t_account.mes_inter_qty
-                t_account.save
-              end
-            end
+            t_account.sap_add_resb_qty = t_account.balqty
+            t_account.save
           end
         end
       end
@@ -554,7 +545,7 @@ class MesTErpAccount < ActiveRecord::Base
     end
   end
 
-  def self.create_sap_resb(rsnum, rspos, bdmng)
+  def self.create_sap_resb(rsnum, rspos, bdmng, key)
     begin
       sql = "select nvl(max(rspos),8000) rspos from sapsr3.resb where mandt='168' and rsnum=? and rspos between '8000' and '9000'"
       resbs = Sapdb.find_by_sql([sql, rsnum])
@@ -585,7 +576,7 @@ class MesTErpAccount < ActiveRecord::Base
         lines.setValue('KZEAR', '')
         lines.setValue('GPREIS', '')
         lines.setValue('GPREIS_2', '')
-        lines.setValue('POTX2', 'MES_OVERLOAD')
+        lines.setValue('POTX2', key)
         lines.setValue('POTX1', 'MES_OVERLOAD')
         lines.setValue('POSNR', 'Z002')
       end
