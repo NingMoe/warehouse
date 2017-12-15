@@ -7,4 +7,10 @@ class SaprfcsController < ApplicationController
     render text: hash.to_json, layout: false
   end
 
+  def get_read_text
+    table = {}
+    table = Saprfc.get_read_text(params[:text_lines_table_json]) if params[:text_lines_table_json].present?
+    render text: table.to_json
+  end
+
 end

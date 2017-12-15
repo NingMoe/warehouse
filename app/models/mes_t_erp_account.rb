@@ -19,11 +19,17 @@ class MesTErpAccount < ActiveRecord::Base
   java_import 'com.sap.conn.jco.JCoContext'
 
   def self.start
-    check_mo_close
-    adjustment
-    mo_return
-    mo_issue
-    mes_overload
+    job_status = CronJob.kill('rails r MesTErpAccount.start', '540')
+    if not job_status.eql?('job_still_running')
+      check_mo_close
+      adjustment
+      mo_return
+      mo_issue
+      mes_overload
+      #send_email('cronjob', 'rails r MesTErpAccount.start finish running')
+    else
+      send_email('cronjob', 'rails r MesTErpAccount.start still running')
+    end
   end
 
   def self.check_mo_close
@@ -357,32 +363,33 @@ class MesTErpAccount < ActiveRecord::Base
   end
 
   def self.mes_overload
+
+    completed_in_minutes = 60 * 4 * 1 #min
+    # sql = "
+    #   select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
+    #          a.due_date, b.plant
+    #     from v_closed_mo a
+    #       join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
+    #     where
+    #           a.is_check = 'Y'
+    #       and b.work_center is not null
+    #       and b.move_type='261'
+    #       and ((b.balqty between 0 and 1000) or (b.overflow_flag = 'Y') or ((sysdate - a.due_date)*24*60) > #{completed_in_minutes})
+    #     order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
     # "
-    # select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
-    #        a.due_date, b.plant
-    # from v_closed_mo a
-    # join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
-    # where
-    # (((b.balqty between 0 and 100) or (b.overflow_flag = 'Y')) or
-    #     ((((sysdate - a.due_date)*24*60) > 60 * 24 * 2) and b.balqty > 100))
-    # and a.is_check = 'Y'
-    # and b.work_center is not null
-    # and b.move_type='261'
-    # order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
-    # "
-    completed_in_minutes = 60 * 24 * 2 * 0 #min
     sql = "
-      select b.id, a.project_id,a.sap_workcenter,b.material,b.balqty,
-             a.due_date, b.plant
-        from v_closed_mo a
-          join t_erp_account b on b.order_id=a.project_id and b.work_center=a.sap_workcenter and b.status='10' and b.sap_add_resb_qty=0
-        where  ((sysdate - a.due_date)*24*60) > #{completed_in_minutes}
-          and a.is_check = 'Y'
-          and b.work_center is not null
-          and b.move_type='261'
-          and ((b.balqty between 0 and 100) or (b.overflow_flag = 'Y'))
-        order by a.due_date desc,a.project_id,a.sap_workcenter,b.material
-    "
+      select b.id, b.order_id project_id,b.work_center,a.sap_workcenter,b.material,b.balqty,b.sap_posted_qty,b.sap_no_stock,
+                   a.due_date, b.plant, b.created_time
+        from t_erp_account b
+          left join v_closed_mo a on b.order_id=a.project_id and b.work_center=a.sap_workcenter and a.is_check = 'Y'
+        where b.status='10' and b.sap_add_resb_qty=0
+          and (
+                (((sysdate - a.due_date)*24*60) > #{completed_in_minutes} and balqty < 2000)
+             /*
+             or (b.work_center like '%DIP%' and b.balqty < 1000 and (((sysdate - b.created_time)*24*60) > #{completed_in_minutes}))
+              */
+             )
+        order by b.id "
     accounts = MesTErpAccount.find_by_sql(sql)
     accounts.each do |account|
       t_account = MesTErpAccount.find(account.id)
@@ -391,9 +398,9 @@ class MesTErpAccount < ActiveRecord::Base
           from sapsr3.resb a
             join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
             join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda
-          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and a.matnr=? and d.arbpl=?
+          where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and a.matnr=? and d.arbpl=? and a.werks=?
       "
-      resbs = Sapdb.find_by_sql([sql, t_account.order_id, t_account.material, t_account.work_center])
+      resbs = Sapdb.find_by_sql([sql, t_account.order_id, t_account.material, t_account.work_center, t_account.plant])
       record_created = false
       if resbs.present?
         key = "MES_TEA_ID:#{t_account.id}"
@@ -458,6 +465,9 @@ class MesTErpAccount < ActiveRecord::Base
           lines.setValue('MOVE_TYPE', '261')
           if resb.move_type.eql?('262')
             lines.setValue('XSTOB', 'X')
+            if hash[:posnr].include?('Z002')
+              lines.setValue('NO_MORE_GR', 'X')
+            end
           end
           lines.setValue('ORDERID', hash[:aufnr])
           lines.setValue('RESERV_NO', hash[:rsnum])
@@ -556,7 +566,8 @@ class MesTErpAccount < ActiveRecord::Base
       commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
       commit.getImportParameterList().setValue('WAIT', 'X')
 
-      function = repos.getFunction('Z_CREATE_RESERVATION')
+      #function = repos.getFunction('Z_CREATE_RESERVATION')
+      function = repos.getFunction('Z_RESERVATION_CREATE')
       lines = function.getTableParameterList().getTable('XRESB')
 
       sql = "select * from sapsr3.resb where mandt='168' and rsnum=? and rspos=? and rownum=1"
@@ -573,7 +584,7 @@ class MesTErpAccount < ActiveRecord::Base
         lines.setValue('ENWRT', '')
         lines.setValue('ERFMG', '')
         lines.setValue('VMENG', '')
-        lines.setValue('KZEAR', '')
+        lines.setValue('KZEAR', 'X')
         lines.setValue('GPREIS', '')
         lines.setValue('GPREIS_2', '')
         lines.setValue('POTX2', key)
@@ -600,6 +611,75 @@ class MesTErpAccount < ActiveRecord::Base
       new_rspos = nil
     end
     new_rspos
+  end
+
+  def self.close_mes_overload
+    close_resbs = []
+    sql = "
+      select b.rsnum,b.rspos,b.potx2
+        from sapsr3.resb b
+      where b.mandt='168' and b.xloek=' ' and b.kzear=' ' and b.posnr='Z002' and b.potx1='MES_OVERLOAD'
+    "
+    Sapdb.find_by_sql(sql).each do |row|
+      need_to_close = true
+      if row.potx2.include?('MES_TEA_ID')
+        id = row.potx2.split(":").second.split(".").first
+        sql = "select status from t_erp_account where id=#{id}"
+        t_erp_account = MesTErpAccount.find_by_sql(sql)
+        if t_erp_account.present?
+          need_to_close = false if t_erp_account.first.status.eql?('10')
+        end
+      end
+      close_resbs.append row if need_to_close
+    end
+    update_resb_kzear(close_resbs)
+  end
+
+  def self.update_resb_kzear(imp_dats)
+    begin
+      dest = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList().setValue('WAIT', 'X')
+
+      function = repos.getFunction('Z_UPD_RESB')
+      lines = function.getTableParameterList().getTable('IMP_DAT')
+      imp_dats.each do |row|
+        puts "#{row.rsnum}.#{row.rspos}"
+        lines.appendRow()
+        lines.setValue('RSNUM', row.rsnum)
+        lines.setValue('RSPOS', row.rspos)
+        lines.setValue('KZEAR', 'X')
+      end
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+    rescue Exception => exception
+      Mail.defaults do
+        delivery_method :smtp, address: '172.91.1.253', port: 25
+      end
+      message = "#{message} #{exception.message} #{exception.backtrace.join('\n')}"
+
+      Mail.deliver do
+        from 'lum.cl@l-e-i.com'
+        to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
+        subject "create_sap_resb #{rsnum} #{rspos}"
+        body message
+      end
+    end
+  end
+
+  def self.send_email(subject, message)
+    Mail.defaults do
+      delivery_method :smtp, address: '172.91.1.253', port: 25
+    end
+    Mail.deliver do
+      from 'lum.cl@l-e-i.com'
+      to 'lum.cl@l-e-i.com, ted.meng@l-e-i.com'
+      subject subject
+      body message
+    end
   end
 
 end

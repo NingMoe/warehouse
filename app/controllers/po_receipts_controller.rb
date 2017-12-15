@@ -174,7 +174,7 @@ class PoReceiptsController < ApplicationController
         SapSe16n.transaction do
           selections = {IMPNR: row.impnr}
           attributes = {DPSEQ: dpseq}
-          SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, 2)
+          SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, '1')
           PoReceipt.where(bukrs: row.bukrs, dpseq: row.dpseq, impnr: impnrs.join(',')).update_all(dpseq: dpseq)
           Ziebi002.where(impnr: row.impnr).update_all(dpseq: dpseq)
         end

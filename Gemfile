@@ -24,6 +24,7 @@ gem 'rubyzip', '~> 1.1.0'
 gem 'axlsx_rails'
 gem 'uuid'
 gem 'kaminari'
+#gem 'ruby-plsql'
 #gem 'rack-timeout'
 
 group :development do

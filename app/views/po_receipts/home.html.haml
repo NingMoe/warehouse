@@ -1,6 +1,6 @@
 = render 'po_receipts/submenu'
 
-.col-xs-12.col-xs-6
+.col-xs-12.col-sm-6
   .panel.panel-default
     .panel-heading
       .panel-title
@@ -10,26 +10,65 @@
       %h5= link_to t('unallocated_list'), unallocated_po_receipts_path
       %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
 
-.col-xs-12.col-xs-6
-  .panel.panel-default
-    .panel-heading
-      .panel-title
-        IEB保稅進口來料 IEB Import Goods
-    .panel-body
-      %h5= link_to t('scan_receive_label'), direct_import_po_receipts_path
-      %h5= link_to t('unallocated_list'), direct_import_unallocated_po_receipts_path
-      %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
+.col-xs-12.col-sm-6
+  .col-xs-12
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          IEB保稅進口來料 IEB Import Goods
+      .panel-body
+        %h5= link_to t('scan_receive_label'), direct_import_po_receipts_path
+        %h5= link_to t('unallocated_list'), direct_import_unallocated_po_receipts_path
+        %h5= link_to t('allocated_po'), allocated_po_po_receipts_path
 
-.col-xs-12.col-xs-6
-  .panel.panel-default
-    .panel-heading
-      .panel-title
-        一般STO General STO DN Received
-    .panel-body
-      %h5= link_to t('maintain_sto'), stos_url
-      %h5= link_to t('maintain_sto_dn'), supplier_dns_url
 
-.col-xs-12.col-xs-6
+.col-xs-12.col-sm-6
+  .row
+    .col-xs-12
+      .panel.panel-default
+        .panel-heading
+          .panel-title
+            呆料明細下載到個人郵箱 Download Idle Stock Report To Mailbox
+        .panel-body
+          %p
+            點擊一次即可, 系統就會自動把EXCEL檔案寄到您的郵箱. 多次點擊會造成重複檔案送到您的郵箱并會影響系統效率.
+          %p
+            Please click once the EXCEL report will send it to your mailbox, dont repeat clicking!
+          %h5= link_to 'DT全部呆料明细 DT Idle Stock Report', send_stock_idle_reports_url(fl:'DT')
+          %h5= link_to 'TX全部呆料明细 TX Idle Stock Report', send_stock_idle_reports_url(fl:'TX')
+          %h5= link_to 'PH全部呆料明细 PH Idle Stock Report', send_stock_idle_reports_url(fl:'PH')
+
+    .col-xs-12
+      .panel.panel-default
+        .panel-heading
+          .panel-title
+            呆料原因上傳 Upload Stock Idle Reason
+        .panel-body
+          = form_tag(update_stock_idle_reports_url, method: 'post') do
+            .form-group
+              = label_tag '粘貼資料 Paste Excel Data', nil
+              = text_area_tag 'datas', '', class: 'form-control', placeholder: '料號[material]  批次[lot]  處理日期[review date]  原因代碼[reason]  原因說明[remark]', size: '25x10'
+              %p
+                料號[material]  批次[lot]  處理日期[review date]  原因代碼[reason]  原因說明[remark]
+            .row
+            %p
+              點擊一次即可, 系統就會自動把EXCEL檔案寄到您的郵箱. 多次點擊會造成重複更新并會影響系統效率
+            %p
+              Please click once the EXCEL report will send it to your mailbox, dont repeat clicking!
+
+            = render 'layouts/submit_button'
+
+
+-#.col-xs-12.col-xs-6
+-#  .panel.panel-default
+-#    .panel-heading
+-#      .panel-title
+-#        一般STO General STO DN Received
+-#    .panel-body
+-#      %h5= link_to t('maintain_sto'), stos_url
+-#      %h5= link_to t('maintain_sto_dn'), supplier_dns_url
+
+.col-xs-12.col-sm-6
   .panel.panel-default
     .panel-heading
       .panel-title
@@ -44,6 +83,7 @@
           = text_field_tag 'mjahr', Time.now.strftime("%Y"), class: 'form-control', placeholder: '文件年份'
         .row
         = render 'layouts/submit_button'
+
 
 :javascript
   $(document).ready(function (){
