@@ -28,14 +28,14 @@ class MesPhicomm
         ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
         ^XA
         ^MMT
-        ^PW900
-        ^LL0600
+        ^PW531
+        ^LL0177
         ^LS0
-        ^BY4,3,71^FT48,295^BCN,,N,N
+        ^BY2,3,56^FT76,137^BCN,,N,N
         ^FD>:#{mac_add}^FS
-        ^FT116,210^A0N,25,24^FH
-      dd}^FS
-        ^FT51,208^AAN,27,15^FH
+        ^FT138,66^A0N,25,24^FH
+        ^FD#{mac_add}^FS
+        ^FT90,66^A0N,25,24^FH
         ^FDSN:^FS
         ^PQ1,0,1,Y^XZ
     "
@@ -61,14 +61,14 @@ class MesPhicomm
       ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
-      ^PW900
-      ^LL0600
+      ^PW531
+      ^LL0177
       ^LS0
-      ^BY4,3,71^FT48,295^BCN,,N,N
+      ^BY2,3,56^FT76,137^BCN,,N,N
       ^FD>:#{sn}^FS
-      ^FT116,210^A0N,25,24^FH
+      ^FT138,66^A0N,25,24^FH
       ^FD#{sn}^FS
-      ^FT51,208^AAN,27,15^FH
+      ^FT90,66^A0N,25,24^FH
       ^FDSN:^FS
       ^PQ1,0,1,Y^XZ
     "
