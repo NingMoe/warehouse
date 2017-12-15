@@ -12,6 +12,15 @@ class MesTErpOutProject < ActiveRecord::Base
   self.table_name = :t_erp_out_project
   establish_connection :leimes
 
+  def self.start
+    job_status = CronJob.kill('rails r MesTErpOutProject.start', '540')
+    if not job_status.eql?('job_still_running')
+      issue
+    else
+      send_email('cronjob', 'rails r MesTErpOutProject.start still running')
+    end
+  end
+
   def self.issue
     sql = "select to_char(wm_concat(chr(39)||data_value||chr(39))) matkl from t_data_dictionary where data_model_code = 'ITEM_GROUP' and use_flag = 0"
     rows = MesTErpOutProject.find_by_sql(sql)
@@ -27,7 +36,7 @@ class MesTErpOutProject < ActiveRecord::Base
                a.bdmng, a.enmng, (a.bdmng - a.enmng) bal_qty,
                a.posnr, d.arbpl, a.aufnr
           from sapsr3.resb a
-                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl and c.plnfl=a.plnfl
+                 join sapsr3.afvc  c on c.mandt=a.mandt and c.aufpl=a.aufpl and c.aplzl=a.aplzl
                  join sapsr3.crhd  d on d.mandt=c.mandt and d.objty='A' and d.objid=c.arbid and a.bdter between d.begda and d.endda and d.arbpl=?
           where a.mandt='168' and a.dumps=' ' and a.bdmng <> 0 and a.xloek=' ' and a.aufnr=? and (a.bdmng - a.enmng) > 0
             and a.matkl in (#{matkls})
@@ -42,6 +51,7 @@ class MesTErpOutProject < ActiveRecord::Base
         sql = "
           select matnr,werks,lgort,charg,clabs from sapsr3.mchb
             where mandt='168' and (werks,matnr) in (#{mat_refs.join(',')}) and clabs > 0
+            and lgort not in ('RWNG','NNNN')
             order by werks,matnr,charg,lgort
         "
         mchbs = {}

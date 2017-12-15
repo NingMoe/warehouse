@@ -1,5 +1,29 @@
 Rails.application.routes.draw do
 
+  resources :mes_phicomms do
+    get :check_sn_view, on: :collection
+    post :check_sn_post, on: :collection
+    get :print_mac_addr_view, on: :collection
+    post :print_mac_addr_post, on: :collection
+    get :print_sn_view, on: :collection
+    post :print_sn_post, on: :collection
+    get :print_color_box_label_view, on: :collection
+    post :print_color_box_label_post, on: :collection
+    get :update_kcode_view, on: :collection
+    post :update_kcode_post, on: :collection
+    post :update_printer, on: :collection
+  end
+
+  resources :mes do
+    get :display_stock_area_info, on: :collection
+    post :update_stock_area_info, on: :collection
+  end
+
+  resources :saprfcs do
+    get :dn_pack_qty, on: :collection
+    get :get_read_text, on: :collection
+  end
+
   resources :rfc_msgs do
     get :msg, on: :collection
   end
@@ -50,6 +74,9 @@ Rails.application.routes.draw do
 
   resources :reports do
     get :open_sto_list, on: :collection
+    get :check_dup_point, on: :collection
+    get :send_stock_idle, on: :collection
+    post :update_stock_idle, on: :collection
   end
 
   resources :user_ldaps do

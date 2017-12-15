@@ -18,6 +18,17 @@ class MesTErpAccountOther < ActiveRecord::Base
   java_import 'com.sap.conn.jco.ext.DestinationDataProvider'
   java_import 'com.sap.conn.jco.JCoContext'
 
+  def self.start
+    job_status = CronJob.kill('rails r MesTErpAccountOther.start', '540')
+    if not job_status.eql?('job_still_running')
+      posting
+    else
+      send_email('cronjob', 'rails r MesTErpAccountOther.start still running')
+    end
+  end
+
+
+
   def self.posting
     mat_lot_refs = []
     mes_t_erp_accounts = MesTErpAccountOther
@@ -118,13 +129,14 @@ class MesTErpAccountOther < ActiveRecord::Base
 
       com.sap.conn.jco.JCoContext.begin(dest)
       function.execute(dest)
-
+      sap_bapi_msg = ''
       posting_success = true
       returnMessage = function.getTableParameterList().getTable('RETURN')
       (1..returnMessage.getNumRows).each do |i|
         puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
         if returnMessage.getString('TYPE').eql?('E')
           posting_success = false
+          sap_bapi_msg = "#{sap_bapi_msg} #{returnMessage.getString('MESSAGE')}\n"
         end
         returnMessage.nextRow
       end
@@ -159,6 +171,7 @@ class MesTErpAccountOther < ActiveRecord::Base
       else #posting error
         mes_t_erp_accounts.each do |account|
           account.status = 'E'
+          account.sap_bapi_msg = sap_bapi_msg
           account.save
         end
       end

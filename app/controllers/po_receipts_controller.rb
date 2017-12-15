@@ -118,7 +118,7 @@ class PoReceiptsController < ApplicationController
         "
         po_receipts = Sapdb.find_by_sql(sql)
         po_receipts.each do |po_receipt|
-          MesTErpPoItem.create(
+          MesTErpPoItem.create!(
               po_number: po_receipt.ebeln,
               item_line: po_receipt.ebelp,
               item_code: po_receipt.matnr,
@@ -174,7 +174,7 @@ class PoReceiptsController < ApplicationController
         SapSe16n.transaction do
           selections = {IMPNR: row.impnr}
           attributes = {DPSEQ: dpseq}
-          SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, 2)
+          SapSe16n.create_job('ZIEBI001', 'UPDATE', selections, attributes, '1')
           PoReceipt.where(bukrs: row.bukrs, dpseq: row.dpseq, impnr: impnrs.join(',')).update_all(dpseq: dpseq)
           Ziebi002.where(impnr: row.impnr).update_all(dpseq: dpseq)
         end
