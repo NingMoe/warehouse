@@ -157,4 +157,35 @@ class MesTErpOutItem < ActiveRecord::Base
     [posting_success, mblnr, mjahr]
   end
 
+  def self.update_sap_resb(rsnum, rspos, bdter)
+    dest = JCoDestinationManager.getDestination('sap_prd')
+    repos = dest.getRepository
+    commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+    commit.getImportParameterList().setValue('WAIT', 'X')
+
+    function = repos.getFunction('BAPI_RESERVATION_CHANGE')
+    function.getImportParameterList().setValue('RESERVATION', rsnum)
+
+    lines = function.getTableParameterList().getTable('RESERVATIONITEMS_CHANGED')
+    lines.appendRow()
+    lines.setValue('RES_ITEM', rspos)
+    lines.setValue('REQ_DATE', bdter)
+    com.sap.conn.jco.JCoContext.begin(dest)
+    function.execute(dest)
+    commit.execute(dest)
+
+    sap_msg_texts = []
+    posting_success = true
+    returnMessage = function.getTableParameterList().getTable('RETURN')
+    (1..returnMessage.getNumRows).each do |i|
+      puts "#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+      if returnMessage.getString('TYPE').eql?('E')
+        sap_msg_texts.append("#{i} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}")
+        posting_success = false
+      end
+      returnMessage.nextRow
+    end
+
+    com.sap.conn.jco.JCoContext.end(dest)
+  end
 end

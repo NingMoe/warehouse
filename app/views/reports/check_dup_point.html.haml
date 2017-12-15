@@ -1,0 +1,44 @@
+.col-xs-12.col-sm-6
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        = '檢查MO重複點位'
+    .panel-body
+      = form_tag(check_dup_point_reports_url, method: 'get') do
+
+        .form-group.col-xs-12
+          = label_tag 'aufnrs', 'MO號碼(可以從EXCEL粘貼)'
+          = text_area_tag 'aufnrs', '', class: 'form-control', placeholder: 'MO號碼(可以從EXCEL粘貼)', size: '25x5'
+
+        .form-group.col-xs-12
+          = render 'layouts/submit_button'
+
+.row
+
+- if @rows.present?
+  .table-responsive
+    %table.table.table-bordered.table-condensed
+      %thead
+        %tr
+          %th 工單
+          %th 工作站
+          %th 位號
+          %th 父階
+          %th 序號
+          %th 料號
+          %th 工單位號
+          %th 機種
+          %th 物料組
+      %tbody
+        - @rows.keys.sort.each do |key|
+          - @rows[key].each do |row|
+            %tr
+              %td= row[:project_no]
+              %td= row[:work_center]
+              %td= row[:point]
+              %td= row[:wip]
+              %td= row[:posnr]
+              %td= row[:item_no]
+              %td= row[:points]
+              %td= row[:pmatnr]
+              %td= row[:item_group]

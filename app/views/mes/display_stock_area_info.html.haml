@@ -1,0 +1,58 @@
+.row
+  .col-xs-12
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          = '顯示機台上庫存'
+      .panel-body
+        = form_tag(display_stock_area_info_mes_url, method: 'get') do
+
+          .form-group.col-xs-3
+            = label_tag 'sad_doc_number', '備料單號'
+            = text_field_tag 'sad_doc_number', params[:sad_doc_number], class: 'form-control'
+
+          .form-group.col-xs-3
+            = label_tag 'sad_item_code', '料號'
+            = text_field_tag 'sad_item_code', params[:sad_item_code], class: 'form-control'
+
+          .form-group.col-xs-3
+            = label_tag 'sad_tatch_num', '批次'
+            = text_field_tag 'sad_tatch_num', params[:sad_tatch_num], class: 'form-control'
+
+          .form-group.col-xs-3
+            = label_tag 'sad_area_s', '工廠'
+            = text_field_tag 'sad_area_s', params[:sad_area_s], class: 'form-control'
+
+          .form-group.col-xs-12
+            = render 'layouts/submit_button'
+
+- if @rows.present?
+  = form_tag(update_stock_area_info_mes_url, method: 'post') do
+    .table-responsive
+      %table.table.table-bordered
+        %thead
+          %tr
+            %th.text-center
+              = render 'layouts/submit_button'
+              = t('plant')
+            %th= '備料單'
+            %th= '料號'
+            %th= '批次'
+            %th= '線邊儲位'
+            %th= '數量'
+            %th= '建立日期'
+        %tbody
+          - @rows.each do |row|
+            %tr
+              %td.text-center{width: '30px'}
+                = check_box_tag('sad_ids[]', row.sad_id)
+                = row.sad_area_s
+              %td= row.sad_doc_number
+              %td= row.sad_item_code
+              %td= row.sad_tatch_num
+              %td= row.sad_area_sa
+              %td.text-right
+                = row.sad_stock_num
+              %td= row.sad_create_date.strftime("%Y%m%d %H:%M")
+
+
