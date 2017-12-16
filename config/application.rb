@@ -27,11 +27,5 @@ module Warehouse
     config.active_record.default_timezone = :local
     config.active_record.pluralize_table_names = false
 
-    # Thread.new do
-    #   while true
-    #     puts "Time now: #{Time.now}"
-    #     sleep(1)
-    #   end
-    # end
   end
 end

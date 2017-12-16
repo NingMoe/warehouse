@@ -17,20 +17,13 @@ gem 'devise_ldap_authenticatable','0.8.1'
 gem 'haml-rails'
 #gem 'high_voltage'
 gem 'simple_form'
-<<<<<<< Updated upstream
 #gem 'puma'
 gem 'passenger', '~> 5.0', '>= 5.0.30'
-=======
-gem 'puma'
-#gem 'trinidad'
-#gem 'trinidad_daemon_extension'
->>>>>>> Stashed changes
 gem 'axlsx', '2.1.0.pre'
 gem 'rubyzip', '~> 1.1.0'
 gem 'axlsx_rails'
 gem 'uuid'
 gem 'kaminari'
-#gem 'ruby-plsql'
 #gem 'rack-timeout'
 
 group :development do
