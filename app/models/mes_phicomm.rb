@@ -77,6 +77,72 @@ class MesPhicomm
     s.close
   end
 
+  def self.print_sn1(barcode_sn, printer_ip)
+    sql = "select sn from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      sn = records.first.sn
+      print_sn1_label(barcode_sn, printer_ip)
+    else
+      sn = 'N/A'
+    end
+    sn
+  end
+
+  def self.print_sn1_label(sn, printer_ip)
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW531
+      ^LL0177
+      ^LS0
+      ^BY2,3,56^FT58,137^BCN,,N,N
+      ^FD>:#{sn}^FS
+      ^FT121,66^A0N,25,24^FH
+      ^FD#{sn}^FS
+      ^FT73,66^A0N,25,24^FH
+      ^FDSN:^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new(printer_ip, '9100')
+    s.write zpl_command
+    s.close
+  end
+
+  def self.print_sn2(barcode_sn, printer_ip)
+    sql = "select sn from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      sn = records.first.sn
+      print_sn2_label(barcode_sn, printer_ip)
+    else
+      sn = 'N/A'
+    end
+    sn
+  end
+
+  def self.print_sn2_label(sn, printer_ip)
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW531
+      ^LL0177
+      ^LS0
+      ^BY2,3,56^FT76,137^BCN,,N,N
+      ^FD>:#{sn}^FS
+      ^FT138,66^A0N,25,24^FH
+      ^FD#{sn}^FS
+      ^FT90,66^A0N,25,24^FH
+      ^FDSN:^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new(printer_ip, '9100')
+    s.write zpl_command
+    s.close
+  end
+
   def self.print_color_box(barcode_sn, printer_ip)
     sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn])
@@ -94,15 +160,44 @@ class MesPhicomm
       ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
-      ^PW900
-      ^LL0600
+      ^PW768
+      ^LL0413
       ^LS0
-      ^BY4,3,71^FT48,295^BCN,,N,N
+      ^FT93,239^A0N,22,19^FH\^FDS/N:^FS
+      ^FT129,240^A0N,21,21^FH\^FD#{sn}^FS
+      ^BY1,3,47^FT92,295^BCN,,N,N
       ^FD>:#{sn}^FS
-      ^FT116,210^A0N,25,24^FH
-      ^FD#{sn}^FS
-      ^FT51,208^AAN,27,15^FH
-      ^FDSN:^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new(printer_ip, '9100')
+    s.write zpl_command
+    s.close
+  end
+
+  def self.print_outside_box(barcode_sn, printer_ip)
+    sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      mac_add = records.first.mac_add
+      print_outside_box_label(barcode_sn, printer_ip)
+    else
+      mac_add = 'N/A'
+    end
+    mac_add
+  end
+
+  def self.print_outside_box_label(sn, printer_ip)
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW768
+      ^LL0413
+      ^LS0
+      ^FT56,238^A0N,25,24^FH\^FDS/N:^FS
+      ^FT101,238^A0N,25,24^FH\^FD#{sn}^FS
+      ^BY4,3,34^FT34,286^BCN,,N,N
+      ^FD>:FFF^FS
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new(printer_ip, '9100')

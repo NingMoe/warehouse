@@ -7,8 +7,14 @@ Rails.application.routes.draw do
     post :print_mac_addr_post, on: :collection
     get :print_sn_view, on: :collection
     post :print_sn_post, on: :collection
+    get :print_sn1_view, on: :collection
+    post :print_sn1_post, on: :collection
+    get :print_sn2_view, on: :collection
+    post :print_sn2_post, on: :collection
     get :print_color_box_label_view, on: :collection
     post :print_color_box_label_post, on: :collection
+    get :print_outside_box_label_view, on: :collection
+    post :print_outside_box_label_post, on: :collection
     get :update_kcode_view, on: :collection
     post :update_kcode_post, on: :collection
     post :update_printer, on: :collection

@@ -1,4 +1,4 @@
-class MesPhicommsController < ApplicationController
+﻿class MesPhicommsController < ApplicationController
   skip_before_filter :authenticate_user!
 
   def index
@@ -27,6 +27,26 @@ class MesPhicommsController < ApplicationController
     printer_ip = params[:printer_ip]
     @error_msg = nil
     @sn = MesPhicomm.print_sn(barcode, printer_ip)
+    if @sn.eql?('N/A')
+      @error_msg = 'S/N不存在或者錯誤!'
+    end
+  end
+
+  def print_sn1_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+    @sn = MesPhicomm.print_sn1(barcode, printer_ip)
+    if @sn.eql?('N/A')
+      @error_msg = 'S/N不存在或者錯誤!'
+    end
+  end
+
+  def print_sn2_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+    @sn = MesPhicomm.print_sn2(barcode, printer_ip)
     if @sn.eql?('N/A')
       @error_msg = 'S/N不存在或者錯誤!'
     end
@@ -71,6 +91,18 @@ class MesPhicommsController < ApplicationController
     printer_ip = params[:printer_ip]
     @error_msg = nil
     @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+    if @mac_addr.eql?('N/A')
+      @error_msg = 'S/N不存在或者錯誤!'
+    elsif not @mac_addr.present?
+      @error_msg = 'S/N未和MAC地址綁定!'
+    end
+  end  
+
+  def print_outside_box_label_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+    @mac_addr = MesPhicomm.print_outside_box(barcode, printer_ip)
     if @mac_addr.eql?('N/A')
       @error_msg = 'S/N不存在或者錯誤!'
     elsif not @mac_addr.present?
