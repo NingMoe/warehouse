@@ -35,29 +35,6 @@
 
   $(document).ready(function () {
     $('#barcode').focus();
-    $('#barcode').change(function(){
-      rowCounter += 1;
-      var barcode = $('#barcode').val();
-      var printer_ip = $('#printer_ip').val();
-      addrow(barcode);
-      $.ajax({
-        url: '/mes_phicomms/print_outside_box_label_post',
-        method: 'post',
-        data: {barcode: barcode, rowcounter: rowCounter, printer_ip: printer_ip}
-      })
-      $('#barcode').val('');
-    });
-
-    $('#printer_ip').change(function(){
-      var printer_ip = $('#printer_ip').val();
-      var program = $('#program').val();
-
-      $.ajax({
-        url: '/mes_phicomms/update_printer',
-        method: 'post',
-        data: {printer_ip: printer_ip, program: program}
-      })
-    })
   })
 
 

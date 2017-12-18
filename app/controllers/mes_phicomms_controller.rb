@@ -96,7 +96,58 @@
     elsif not @mac_addr.present?
       @error_msg = 'S/N未和MAC地址綁定!'
     end
-  end  
+  end
+
+  def print_outside_box_label_view
+    program = "#{controller_name}.#{action_name}"
+    session[:sn_qty] = 0
+    barcode1 = session[:barcode1]
+    barcode2 = session[:barcode2]
+    barcode3 = session[:barcode3]
+    barcode4 = session[:barcode4]
+    barcode5 = session[:barcode5]
+    barcode6 = session[:barcode6]
+    barcode7 = session[:barcode7]
+    barcode8 = session[:barcode8]
+    barcode9 = session[:barcode9]
+    sn_qty = session[:sn_qty]
+    if sn_qty < 9
+	sn_qty = session[:sn_qty] + 1
+	render :print_outside_box_label_v_s
+    elsif sn_qty = 9
+        @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+    end
+  end
+
+  def print_outside_box_label_v_s
+    sn_qty = params[:sn_qty]
+    if sn_qty == 1
+        session[:barcode1] = params[:barcode]
+    elsif sn_qty == 2
+        session[:barcode2] = params[:barcode]
+    elsif sn_qty == 3
+        session[:barcode3] = params[:barcode]
+    elsif sn_qty == 4
+        session[:barcode4] = params[:barcode]
+    elsif sn_qty == 5
+        session[:barcode5] = params[:barcode]
+    elsif sn_qty == 6
+        session[:barcode6] = params[:barcode]
+    elsif sn_qty == 7
+        session[:barcode7] = params[:barcode]
+    elsif sn_qty == 8
+        session[:barcode8] = params[:barcode]
+    elsif sn_qty == 9
+        session[:barcode9] = params[:barcode]
+	session[:sn_qty] = 0
+    end
+    sn_qty = session[:sn_qty]
+    if sn_qty < 9
+	session[:sn_qty] = sn_qty + 1
+    elsif sn_qty = 9
+        @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+    end
+  end
 
   def print_outside_box_label_post
     barcode = params[:barcode]
