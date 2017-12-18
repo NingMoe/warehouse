@@ -155,4 +155,50 @@ class Saprfc
     end
   end
 
+  def self.chenge_po_delivery_date
+    sql = "
+      select delnr,delps,delet,umdat,dat01,aussl from sapsr3.zsd0012
+        where mandt='168' and werks in ('111A','112A') and delkz='BE' and  aussl in ('U1','U2') and lifnr='L210-PH'
+    "
+    list = Sapdb.find_by_sql(sql)
+    list.each do |row|
+      dest  = JCoDestinationManager.getDestination('sap_prd')
+      repos = dest.getRepository
+
+      commit = repos.getFunction('BAPI_TRANSACTION_COMMIT')
+      commit.getImportParameterList.setValue('WAIT', 'X')
+
+      function = repos.getFunction('BAPI_PO_CHANGE')
+      function.getImportParameterList.setValue('PURCHASEORDER', row.delnr)
+
+
+      impDat = function.getTableParameterList().getTable("POSCHEDULE")
+      impDat.appendRow()
+      impDat.setValue("PO_ITEM", row.delps)
+      impDat.setValue("SCHED_LINE", row.delet)
+      impDat.setValue("DELIVERY_DATE", row.umdat)
+      impDat.setValue("DEL_DATCAT_EXT", "D")
+
+      impDatx = function.getTableParameterList().getTable("POSCHEDULEX")
+      impDatx.appendRow();
+      impDatx.setValue("PO_ITEM", row.delps)
+      impDatx.setValue("PO_ITEMX", "X")
+      impDatx.setValue("SCHED_LINE", row.delet)
+      impDatx.setValue("SCHED_LINEX", "X")
+      impDatx.setValue("DELIVERY_DATE", "X")
+      impDatx.setValue("DEL_DATCAT_EXT", "X")
+
+      com.sap.conn.jco.JCoContext.begin(dest)
+      function.execute(dest)
+      commit.execute(dest)
+      com.sap.conn.jco.JCoContext.end(dest)
+
+      returnMessage = function.getTableParameterList().getTable('RETURN')
+      (1..returnMessage.getNumRows).each { |i|
+        puts "#{i}: PO: #{row.delnr}.#{row.delet} Type:#{returnMessage.getString('TYPE')}, MSG:#{returnMessage.getString('MESSAGE')}"
+        returnMessage.nextRow
+      }
+    end
+  end
+
 end
