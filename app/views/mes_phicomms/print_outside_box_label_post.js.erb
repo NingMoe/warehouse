@@ -8,7 +8,7 @@ $('#s<%= params[:rowcounter] %>').addClass('success');
 $('#t<%= params[:rowcounter] %>').addClass('success');
 <% end %>
 
-$('#carton_number').text('<%= @carton_number%>');
+$('#carton_number').val('<%= @carton_number%>');
 <% (0..8).each do |i| %>
 $('#sn<%= i+1 %>').val('<%= @sn_array[i]%>');
 <% end %>
