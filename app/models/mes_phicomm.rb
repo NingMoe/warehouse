@@ -219,14 +219,14 @@ class MesPhicomm
       sn_array.append params[:barcode]
       if (params[:pack_qty] || '1').to_i == sn_array.size
         label_barcode = "#{params[:mo_number]}C#{carton_number.to_s.rjust(4, '0')}"
-        sn_array_text = sn_array.join("'.'")
+        sn_array_text = sn_array.join("','")
         sql = "update txdb.phicomm_mes_001 set cartonnumber = '#{label_barcode}' where sn in ('#{sn_array_text}')"
         PoReceipt.connection.execute sql
         #避免SN數組少於9個元素
         (sn_array.size..8).each {sn_array.append ''}
 
         # 打印标签
-        print_outside_box_label(label_barcode, sn_array, params[:printer_ip])
+        #print_outside_box_label(label_barcode, sn_array, params)
         carton_number += 1
         sn_array.clear
       end
@@ -236,7 +236,7 @@ class MesPhicomm
     #print_outside_box_label(barcode_sn, printer_ip)
   end
 
-  def self.print_outside_box_label(label_barcode, sn_array, printer_ip)
+  def self.print_outside_box_label(label_barcode, sn_array, params)
     zpl_command = "
       ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
       ^XA
@@ -283,7 +283,7 @@ class MesPhicomm
       ^FD0000001C0001^FS
       ^PQ1,0,1,Y^XZ
     "
-    s = TCPSocket.new(printer_ip, '9100')
+    s = TCPSocket.new(params[:printer_ip], '9100')
     s.write zpl_command
     s.close
   end

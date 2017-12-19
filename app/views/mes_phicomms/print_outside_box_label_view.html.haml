@@ -30,16 +30,29 @@
           已确认扫入條碼
           .pull-right
             %label{for: 'pack_qty'}包装数量
-            =text_field_tag 'pack_qty', @pack_qty
+            =text_field_tag 'pack_qty', @pack_qty, size: '10px'
 
       .panel-body
         .panel-title
-          %label{for: 'mo_number'}工單號碼
-          =text_field_tag 'mo_number', @mo_number
-          .pull-right
-            %label{for: 'carton_number'}包裝箱號
-            =text_field_tag 'carton_number', @carton_number
-        %p
+          .row
+            .col-xs-4
+              %label{for: 'mo_number'}工單
+              =text_field_tag 'mo_number', @mo_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'carton_number'}箱號
+              =text_field_tag 'carton_number', @carton_number, class: 'form-control'
+          .row
+            .col-xs-4
+              %label{for: 'model_number'}型號
+              =text_field_tag 'model_number', @model_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'material_number'}料號
+              =text_field_tag 'material_number', @material_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'net_weight'}淨重
+              =text_field_tag 'net_weight', @net_weight, class: 'form-control'
+          %p
+
         .form-inline
           - for i in 1..9
             .form-group
@@ -76,6 +89,9 @@
           pack_qty: $('#pack_qty').val(),
           mo_number: $('#mo_number').val(),
           carton_number: $('#carton_number').val(),
+          model_number: $('#model_number').val(),
+          material_number: $('#material_number').val(),
+          net_weight: $('#net_weight').val(),
           sn1: $('#sn1').val(),
           sn2: $('#sn2').val(),
           sn3: $('#sn3').val(),
@@ -91,6 +107,14 @@
       $('#barcode').focus();
     });
 
+    $('#mo_number').change(function(){
+      $.ajax({
+        url: '/mes_phicomms/get_product_info',
+        method: 'post',
+        data: {mo_number: $('#mo_number').val()}
+      })
+    })
+
     $('#printer_ip').change(function(){
       var printer_ip = $('#printer_ip').val();
       var program = $('#program').val();
@@ -101,6 +125,7 @@
         data: {printer_ip: printer_ip, program: program}
       })
     })
+
   })
 
 

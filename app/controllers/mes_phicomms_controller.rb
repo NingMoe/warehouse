@@ -98,27 +98,6 @@
     end
   end
 
-  def print_outside_box_label_view
-    program = "#{controller_name}.#{action_name}"
-    session[:sn_qty] = 0
-    barcode1 = session[:barcode1]
-    barcode2 = session[:barcode2]
-    barcode3 = session[:barcode3]
-    barcode4 = session[:barcode4]
-    barcode5 = session[:barcode5]
-    barcode6 = session[:barcode6]
-    barcode7 = session[:barcode7]
-    barcode8 = session[:barcode8]
-    barcode9 = session[:barcode9]
-    sn_qty = session[:sn_qty]
-    if sn_qty < 9
-	sn_qty = session[:sn_qty] + 1
-	render :print_outside_box_label_v_s
-    elsif sn_qty = 9
-        @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
-    end
-  end
-
   def print_outside_box_label_v_s
     sn_qty = params[:sn_qty]
     if sn_qty == 1
@@ -158,6 +137,28 @@
 
   def print_outside_box_label_post
     @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
+  end
+
+  def get_product_info
+    aufnr = (params[:mo_number] || '0').rjust(12,'0')
+    @mo_number = ''
+    @model_number = ''
+    @material_number = ''
+    @net_weight = ''
+    sql = "
+      select a.aufnr,a.matnr,b.ntgew,c.kdmat,c.postx
+        from sapsr3.afpo a
+          join sapsr3.mara b on b.mandt='168' and b.matnr=a.matnr
+          left join sapsr3.knmt c on c.mandt=a.mandt and c.kunnr='2H169' and c.matnr=a.matnr
+        where a.mandt='168' and a.aufnr='#{aufnr}'
+    "
+    rows = Sapdb.find_by_sql(sql)
+    rows.each do |row|
+      @mo_number = row.aufnr
+      @model_number = row.postx
+      @material_number = row.kdmat
+      @net_weight = row.ntgew
+    end
   end
 
   def update_printer

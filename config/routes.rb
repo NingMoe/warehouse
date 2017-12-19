@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     get :update_kcode_view, on: :collection
     post :update_kcode_post, on: :collection
     post :update_printer, on: :collection
+    post :get_product_info, on: :collection
   end
 
   resources :mes do
