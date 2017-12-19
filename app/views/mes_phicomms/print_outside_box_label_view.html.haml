@@ -111,6 +111,7 @@
       $.ajax({
         url: '/mes_phicomms/get_product_info',
         method: 'post',
+        async: false,
         data: {mo_number: $('#mo_number').val()}
       })
     })
