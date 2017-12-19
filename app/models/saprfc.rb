@@ -155,7 +155,7 @@ class Saprfc
     end
   end
 
-  def self.chenge_po_delivery_date
+  def self.change_po_delivery_date
     sql = "
       select delnr,delps,delet,umdat,dat01,aussl from sapsr3.zsd0012
         where mandt='168' and werks in ('111A','112A') and delkz='BE' and  aussl in ('U1','U2') and lifnr='L210-PH'

@@ -23,6 +23,31 @@
               %th MAC Addr
           %tbody#status_tbody
 
+  .col-xs-12.col-sm-6
+    .panel.panel-success
+      .panel-heading
+        .panel-title
+          已确认扫入條碼
+          .pull-right
+            %label{for: 'pack_qty'}包装数量
+            =text_field_tag 'pack_qty', @pack_qty
+
+      .panel-body
+        .panel-title
+          %label{for: 'mo_number'}工單號碼
+          =text_field_tag 'mo_number', @mo_number
+          .pull-right
+            %label{for: 'carton_number'}包裝箱號
+            =text_field_tag 'carton_number', @carton_number
+        %p
+        .form-inline
+          - for i in 1..9
+            .form-group
+              %label{for: "sn#{i}"}
+                = i
+              =text_field_tag "sn#{i}", '', class: 'form-control', readonly: true, size: '50px'
+            %p
+
 :javascript
   var rowCounter = 0;
   function addrow(barcode){
@@ -43,9 +68,27 @@
       $.ajax({
         url: '/mes_phicomms/print_outside_box_label_post',
         method: 'post',
-        data: {barcode: barcode, rowcounter: rowCounter, printer_ip: printer_ip}
+        async: false,
+        data: {
+          barcode: barcode,
+          rowcounter: rowCounter,
+          printer_ip: printer_ip,
+          pack_qty: $('#pack_qty').val(),
+          mo_number: $('#mo_number').val(),
+          carton_number: $('#carton_number').val(),
+          sn1: $('#sn1').val(),
+          sn2: $('#sn2').val(),
+          sn3: $('#sn3').val(),
+          sn4: $('#sn4').val(),
+          sn5: $('#sn5').val(),
+          sn6: $('#sn6').val(),
+          sn7: $('#sn7').val(),
+          sn8: $('#sn8').val(),
+          sn9: $('#sn9').val()
+          }
       })
       $('#barcode').val('');
+      $('#barcode').focus();
     });
 
     $('#printer_ip').change(function(){
