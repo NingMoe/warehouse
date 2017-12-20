@@ -292,22 +292,7 @@
 ^XA^ID005.GRF^FS^XZ
 ^XA^ID006.GRF^FS^XZ
     "
-    #把输出放到邮件.. 正式环境要把代码注释掉, 能效很差的
-    Mail.defaults do
-      delivery_method :smtp, address: '172.91.1.253', port: 25
-    end
-
-    message = sn_array.join("\n")
-    message += "\n"
-    message += zpl_command
-
-    Mail.deliver do
-      from 'lum.cl@l-e-i.com'
-      to 'lum.cl@l-e-i.com, felix.jiang@l-e-i.com'
-      subject 'print_outside_box_label'
-      body message
-    end
-    s = TCPSocket.new(params[:printer_ip], '9100')
+   s = TCPSocket.new(params[:printer_ip], '9100')
     s.write zpl_command
     s.close
   end
