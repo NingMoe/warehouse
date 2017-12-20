@@ -71,6 +71,18 @@
     // }
   }
 
+  function update_program_setting(field_name, field_value){
+     $.ajax({
+          url: '/mes_phicomms/update_program_setting',
+          method: 'post',
+          data: {
+            program: $('#program').val(),
+            field_name: field_name,
+            field_value: field_value
+          }
+    })
+  }
+
   $(document).ready(function () {
     $('#barcode').focus();
     $('#barcode').change(function(){
@@ -108,12 +120,25 @@
     });
 
     $('#mo_number').change(function(){
-      $.ajax({
-        url: '/mes_phicomms/get_product_info',
-        method: 'post',
-        async: false,
-        data: {mo_number: $('#mo_number').val()}
-      })
+      update_program_setting('mo_number', $('#mo_number').val());
+      // $.ajax({
+      //   url: '/mes_phicomms/get_product_info',
+      //   method: 'post',
+      //   async: false,
+      //   data: {mo_number: $('#mo_number').val()}
+      // })
+    })
+
+    $('#model_number').change(function(){
+      update_program_setting('model_number', $('#model_number').val());
+    })
+
+    $('#material_number').change(function(){
+      update_program_setting('material_number', $('#material_number').val());
+    })
+
+    $('#net_weight').change(function(){
+      update_program_setting('net_weight', $('#net_weight').val());
     })
 
     $('#printer_ip').change(function(){

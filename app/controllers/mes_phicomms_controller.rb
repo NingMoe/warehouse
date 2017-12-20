@@ -131,6 +131,19 @@
   def print_outside_box_label_view
     program = "#{controller_name}.#{action_name}"
     @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+    sql = "select * from txdb.phicomm_mes_setting where pc_ip='#{request.ip}' and program='#{program}'"
+    rows = PoReceipt.find_by_sql(sql)
+    if rows.present?
+      rows.each do |row|
+        @mo_number = row.mo_number
+        @model_number = row.model_number
+        @material_number = row.material_number
+        @net_weight = row.net_weight
+      end
+    else
+      sql = "insert into txdb.phicomm_mes_setting (pc_ip, program) values ('#{request.ip}','#{program}')"
+      PoReceipt.connection.execute sql
+    end
     @pack_qty = 9
     @carton_number = '0001'
   end
@@ -159,6 +172,15 @@
       @material_number = row.kdmat
       @net_weight = row.ntgew
     end
+  end
+
+  def update_program_setting
+    program = params[:program]
+    field_name = params[:field_name]
+    field_value = params[:field_value]
+    sql = "update txdb.phicomm_mes_setting set #{field_name} = '#{field_value}' where pc_ip='#{request.ip}' and program='#{program}'"
+    PoReceipt.connection.execute sql
+    render text: ''
   end
 
   def update_printer
