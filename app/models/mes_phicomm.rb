@@ -233,7 +233,7 @@
     end
     (sn_array.size..8).each {sn_array.append ''}
     return [sn_array, error_msgs, mac_add, carton_number.to_s.rjust(4, '0')]
-    #print_outside_box_label(barcode_sn, printer_ip)
+    print_outside_box_label(barcode_sn, printer_ip)
   end
 
   def self.print_outside_box_label(label_barcode, sn_array, params)
