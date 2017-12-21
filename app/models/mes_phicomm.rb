@@ -10,18 +10,7 @@
     end
     sn
   end
-
-  def self.query_cartonnumber(cartonnumber)
-    sql = "select sn from txdb.phicomm_mes_001 where query_cartonnumber=?"
-    records = PoReceipt.find_by_sql([sql, query_cartonnumber])
-    if records.present?
-      sn = records.first.sn
-    else
-      sn = 'N/A'
-    end
-    sn
-  end
-
+  
   def self.print_mac_addr(barcode_sn, printer_ip)
     sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn])
