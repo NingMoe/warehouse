@@ -10,7 +10,7 @@
     end
     sn
   end
-  
+
   def self.print_mac_addr(barcode_sn, printer_ip)
     sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn])
