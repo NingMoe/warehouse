@@ -21,12 +21,13 @@
   end
 
   def query_cartonnumber_post
-    @error_msg = nil
     barcode = params[:barcode]
-    sn = MesPhicomm.query_cartonnumber(barcode)
-    if sn.eql?('N/A')
-      @error_msg = 'SN不存在'
-    end
+    @sn_array = []
+    sql = "select sn from txdb.phicomm_mes_001 where cartonnumber=? order by sn"
+    rows = PoReceipt.find_by_sql([sql, barcode])
+    rows.each {|row| @sn_array.append row.sn}
+    (@sn_array.size..8).each {@sn_array.append ''}
+    @error_msg = rows.present? ? '' : '外箱條碼不存在!'
   end
 
   def print_sn_view
@@ -90,7 +91,7 @@
     @kcode = params[:kcode]
     @error_msg = nil
     update_count = MesPhicomm.update_kcode(barcode, @kcode)
-    @error_msg =  'SN或者MAC地址錯誤!' if update_count == 0
+    @error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
   end
 
   def print_color_box_label_view
@@ -130,30 +131,30 @@
   def print_outside_box_label_v_s
     sn_qty = params[:sn_qty]
     if sn_qty == 1
-        session[:barcode1] = params[:barcode]
+      session[:barcode1] = params[:barcode]
     elsif sn_qty == 2
-        session[:barcode2] = params[:barcode]
+      session[:barcode2] = params[:barcode]
     elsif sn_qty == 3
-        session[:barcode3] = params[:barcode]
+      session[:barcode3] = params[:barcode]
     elsif sn_qty == 4
-        session[:barcode4] = params[:barcode]
+      session[:barcode4] = params[:barcode]
     elsif sn_qty == 5
-        session[:barcode5] = params[:barcode]
+      session[:barcode5] = params[:barcode]
     elsif sn_qty == 6
-        session[:barcode6] = params[:barcode]
+      session[:barcode6] = params[:barcode]
     elsif sn_qty == 7
-        session[:barcode7] = params[:barcode]
+      session[:barcode7] = params[:barcode]
     elsif sn_qty == 8
-        session[:barcode8] = params[:barcode]
+      session[:barcode8] = params[:barcode]
     elsif sn_qty == 9
-        session[:barcode9] = params[:barcode]
-	session[:sn_qty] = 0
+      session[:barcode9] = params[:barcode]
+      session[:sn_qty] = 0
     end
     sn_qty = session[:sn_qty]
     if sn_qty < 9
-	session[:sn_qty] = sn_qty + 1
+      session[:sn_qty] = sn_qty + 1
     elsif sn_qty = 9
-        @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+      @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
     end
   end
 
@@ -169,7 +170,7 @@
   end
 
   def get_product_info
-    aufnr = (params[:mo_number] || '0').rjust(12,'0')
+    aufnr = (params[:mo_number] || '0').rjust(12, '0')
     @mo_number = ''
     @model_number = ''
     @material_number = ''

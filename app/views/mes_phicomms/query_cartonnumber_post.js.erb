@@ -7,3 +7,14 @@ $('#s<%= params[:rowcounter] %>').text('OK');
 $('#s<%= params[:rowcounter] %>').addClass('success');
 $('#t<%= params[:rowcounter] %>').addClass('success');
 <% end %>
+
+$('#cartonnumber').text('外箱條碼: <%= params[:barcode] %>')
+$('#sn1').text('SN 1: <%= @sn_array[0] %>')
+$('#sn2').text('SN 2: <%= @sn_array[1] %>')
+$('#sn3').text('SN 3: <%= @sn_array[2] %>')
+$('#sn4').text('SN 4: <%= @sn_array[3] %>')
+$('#sn5').text('SN 5: <%= @sn_array[4] %>')
+$('#sn6').text('SN 6: <%= @sn_array[5] %>')
+$('#sn7').text('SN 7: <%= @sn_array[6] %>')
+$('#sn8').text('SN 8: <%= @sn_array[7] %>')
+$('#sn9').text('SN 9: <%= @sn_array[8] %>')
