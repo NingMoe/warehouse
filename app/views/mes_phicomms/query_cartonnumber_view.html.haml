@@ -15,14 +15,32 @@
           %thead
             %tr
               %th Itm
-              %th S/N
+              %th 外箱條碼
               %th Msg
           %tbody#status_tbody
+
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          查询结果
+      .panel-body
+        %h4#cartonnumber
+        %p
+        %h4#sn1
+        %h4#sn2
+        %h4#sn3
+        %h4#sn4
+        %h4#sn5
+        %h4#sn6
+        %h4#sn7
+        %h4#sn8
+        %h4#sn9
 
 :javascript
   var rowCounter = 0;
   function addrow(barcode){
-    str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
+    var str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
     $('#status_tbody').prepend(str);
     if (rowCounter > 10){
        $('tr').last().remove();
@@ -37,6 +55,7 @@
       addrow(barcode);
       $.ajax({
         url: '/mes_phicomms/query_cartonnumber_post',
+        async: false,
         method: 'post',
         data: {barcode: barcode, rowcounter: rowCounter}
       })
