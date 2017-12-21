@@ -1,0 +1,63 @@
+﻿= render 'mes_phicomms/submenu'
+= hidden_field_tag 'program', "#{controller_name}.#{action_name}"
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          掃SN條碼打印铭板標籤
+          .pull-right
+            %label{for: 'printer_ip'}打印機IP
+            = text_field_tag 'printer_ip', @printer_ip
+      .panel-body
+        .form-group.col-xs-12
+          %label{for: 'barcode'}SN條碼
+          = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
+      .table-responsive{style:"height:100%;overflow-y:auto;"}
+        %table.table.small.table-bordered.table-condensed
+          %thead
+            %tr
+              %th Itm
+              %th S/N
+              %th MAC Addr
+          %tbody#status_tbody
+
+:javascript
+  var rowCounter = 0;
+  function addrow(barcode){
+    str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
+    $('#status_tbody').prepend(str);
+    // if (rowCounter > 20){
+    //   $('tr').last().remove();
+    // }
+  }
+
+  $(document).ready(function () {
+    $('#barcode').focus();
+    $('#barcode').change(function(){
+      rowCounter += 1;
+      var barcode = $('#barcode').val();
+      var printer_ip = $('#printer_ip').val();
+      addrow(barcode);
+      $.ajax({
+        url: '/mes_phicomms/print_nameplate_box_label_post',
+        method: 'post',
+        data: {barcode: barcode, rowcounter: rowCounter, printer_ip: printer_ip}
+      })
+      $('#barcode').val('');
+    });
+
+    $('#printer_ip').change(function(){
+      var printer_ip = $('#printer_ip').val();
+      var program = $('#program').val();
+
+      $.ajax({
+        url: '/mes_phicomms/update_printer',
+        method: 'post',
+        data: {printer_ip: printer_ip, program: program}
+      })
+    })
+  })
+
+
