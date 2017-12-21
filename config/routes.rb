@@ -21,6 +21,8 @@ Rails.application.routes.draw do
     post :update_printer, on: :collection
     post :get_product_info, on: :collection
     post :update_program_setting, on: :collection
+    get :query_cartonnumber_view, on: :collection
+    post :query_cartonnumber_post, on: :collection
   end
 
   resources :mes do
