@@ -1,4 +1,4 @@
-= render 'mes_phicomms/submenu'
+﻿= render 'mes_phicomms/submenu'
 = hidden_field_tag 'program', "#{controller_name}.#{action_name}"
 
 .row
@@ -41,7 +41,7 @@
       var printer_ip = $('#printer_ip').val();
       addrow(barcode);
       $.ajax({
-        url: '/mes_phicomms/print_color_box_label_post',
+        url: '/mes_phicomms/print_corlor_box_label_post',
         method: 'post',
         data: {barcode: barcode, rowcounter: rowCounter, printer_ip: printer_ip}
       })
