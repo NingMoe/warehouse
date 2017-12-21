@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     post :print_sn2_post, on: :collection
     get :print_color_box_label_view, on: :collection
     post :print_color_box_label_post, on: :collection
+    get :print_nameplate_box_label_view, on: :collection
+    post :print_nameplate_box_label_post, on: :collection
     get :print_outside_box_label_view, on: :collection
     get :print_outside_box_label_v_s, on: :collection
     post :print_outside_box_label_post, on: :collection

@@ -110,6 +110,23 @@
     end
   end
 
+  def print_nameplate_box_label_view
+    program = "#{controller_name}.#{action_name}"
+    @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+  end
+
+  def print_nameplate_box_label_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+    if @mac_addr.eql?('N/A')
+      @error_msg = 'S/N不存在或者錯誤!'
+    elsif not @mac_addr.present?
+      @error_msg = 'S/N未和MAC地址綁定!'
+    end
+  end
+
   def print_outside_box_label_v_s
     sn_qty = params[:sn_qty]
     if sn_qty == 1

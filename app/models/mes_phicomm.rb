@@ -185,6 +185,37 @@
     s.close
   end
 
+  def self.print_nameplate_box(barcode_sn, printer_ip)
+    sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      mac_add = records.first.mac_add
+      print_color_box_label(barcode_sn, printer_ip)
+    else
+      mac_add = 'N/A'
+    end
+    mac_add
+  end
+
+  def self.print_nameplate_box_label(sn, printer_ip)
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW768
+      ^LL0413
+      ^LS0
+      ^FT93,239^A0N,22,19^FH\^FDS/N:^FS
+      ^FT129,240^A0N,21,21^FH\^FD#{sn}^FS
+      ^BY1,3,47^FT92,295^BCN,,N,N
+      ^FD>:#{sn}^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new(printer_ip, '9100')
+    s.write zpl_command
+    s.close
+  end
+
   def self.print_outside_box(params)
     # params field
     # barcode
