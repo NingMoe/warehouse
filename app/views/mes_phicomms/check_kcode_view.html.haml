@@ -1,0 +1,59 @@
+﻿= render 'mes_phicomms/submenu'
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          檢查KCODE碼
+      .panel-body
+        .form-group.col-xs-12
+          %label{for: 'barcode'}SN條碼
+          = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
+        .form-group.col-xs-12
+          %label{for: 'kcode'}KCODE條碼
+          = text_field_tag 'kcode', '', class: 'form-control'
+      .table-responsive{style:"height:100%;overflow-y:auto;"}
+        %table.table.small.table-bordered.table-condensed
+          %thead
+            %tr
+              %th Itm
+              %th SN
+              %th KCODE
+          %tbody#status_tbody
+
+:javascript
+  var rowCounter = 0;
+  function addrow(barcode){
+    str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
+    $('#status_tbody').prepend(str);
+    // if (rowCounter > 20){
+    //   $('tr').last().remove();
+    // }
+  }
+
+  $(document).ready(function () {
+    $('#barcode').focus();
+
+    $('#barcode').change(function(){
+      if ($('#barcode').val() != ''){
+        $('#kcode').focus();
+      }
+    })
+
+    $('#kcode').change(function(){
+      rowCounter += 1;
+      var barcode = $('#barcode').val();
+      var kcode = $('#kcode').val();
+      addrow(barcode);
+      $.ajax({
+        url: '/mes_phicomms/check_kcode_post',
+        method: 'post',
+        data: {barcode: barcode, rowcounter: rowCounter, kcode: kcode}
+      })
+      $('#barcode').val('');
+      $('#kcode').val('');
+      $('#barcode').focus();
+    });
+  })
+
+

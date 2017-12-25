@@ -25,6 +25,8 @@ Rails.application.routes.draw do
     post :update_program_setting, on: :collection
     get :query_cartonnumber_view, on: :collection
     post :query_cartonnumber_post, on: :collection
+    get :check_kcode_view, on: :collection
+    post :check_kcode_post, on: :collection
   end
 
   resources :mes do

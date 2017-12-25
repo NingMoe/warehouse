@@ -17,6 +17,27 @@
     end
   end
 
+  def check_kcode_view
+  end
+
+  def check_kcode_post
+    @error_msg = nil
+    @result = ['','']
+    barcode = params[:barcode]
+    kcode = params[:kcode]
+    @result = MesPhicomm.check_kcode(barcode, kcode)
+    sn = result[0]
+    kcode = result[1]
+    if sn.eql?('N/A')
+      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
+    elsif kcode.eql?('N/A')
+      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
+    else
+      @error_msg = kcode
+    end
+    end
+  end
+
   def query_cartonnumber_view
   end
 
@@ -125,36 +146,6 @@
       @error_msg = 'S/N不存在或者錯誤!'
     elsif not @mac_addr.present?
       @error_msg = 'S/N未和MAC地址綁定!'
-    end
-  end
-
-  def print_outside_box_label_v_s
-    sn_qty = params[:sn_qty]
-    if sn_qty == 1
-      session[:barcode1] = params[:barcode]
-    elsif sn_qty == 2
-      session[:barcode2] = params[:barcode]
-    elsif sn_qty == 3
-      session[:barcode3] = params[:barcode]
-    elsif sn_qty == 4
-      session[:barcode4] = params[:barcode]
-    elsif sn_qty == 5
-      session[:barcode5] = params[:barcode]
-    elsif sn_qty == 6
-      session[:barcode6] = params[:barcode]
-    elsif sn_qty == 7
-      session[:barcode7] = params[:barcode]
-    elsif sn_qty == 8
-      session[:barcode8] = params[:barcode]
-    elsif sn_qty == 9
-      session[:barcode9] = params[:barcode]
-      session[:sn_qty] = 0
-    end
-    sn_qty = session[:sn_qty]
-    if sn_qty < 9
-      session[:sn_qty] = sn_qty + 1
-    elsif sn_qty = 9
-      @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
     end
   end
 
