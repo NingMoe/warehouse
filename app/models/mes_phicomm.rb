@@ -72,14 +72,12 @@
       ^XA
       ^MMT
       ^PW531
-      ^LL0177
+      ^LL0130
       ^LS0
-      ^BY2,3,56^FT76,137^BCN,,N,N
-      ^FD>:#{sn}^FS
-      ^FT138,66^A0N,25,24^FH
+      ^BY2,3,56^FT23,111^BCN,,N,N
       ^FD#{sn}^FS
-      ^FT90,66^A0N,25,24^FH
-      ^FDSN:^FS
+      ^FT86,40^A0N,25,24^FH\^FD#{sn}^FS
+      ^FT38,40^A0N,25,24^FH\^FDSN:^FS
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new(printer_ip, '9100')
@@ -168,13 +166,15 @@
       ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
-      ^PW768
-      ^LL0413
+      ^PW531
+      ^LL0177
       ^LS0
-      ^FT93,239^A0N,22,19^FH\^FDS/N:^FS
-      ^FT129,240^A0N,21,21^FH\^FD#{sn}^FS
-      ^BY1,3,47^FT92,295^BCN,,N,N
+      ^BY2,3,56^FT76,137^BCN,,N,N
+      ^FD>:#{sn}^FS
+      ^FT138,66^A0N,25,24^FH
       ^FD#{sn}^FS
+      ^FT90,66^A0N,25,24^FH
+      ^FDSN:^FS
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new(printer_ip, '9100')
@@ -381,25 +381,48 @@
   end
 
   def self.checkRoute(sn, stationname)
+    # curr_stationid
+    # curr_stationname
+    # next_stationid
+    # next_stationname
     sql = "SELECT ST.STATION, ST.STATIONID FROM PHICOMM_MES_STATION ST,PHICOMM_MES_001 MES WHERE ST.STATIONID = MES.STATION AND MES.SN = ?"
     records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
-      if records.first.STATION == stationname
+      next_stationname = get_next_stationname(records.first.STATIONID)
+      if records.first.STATION.eql?(stationname)
+        return 'PASS'
+      end
+    else
+      return 'SN:#{sn}  现在应该测试#{next_stationname}站!'
+    end
+  end
 
+  def self.saveNextStation(sn, stationname)
+    sql = "SELECT ST.STATION, ST.STATIONID FROM PHICOMM_MES_STATION ST,PHICOMM_MES_001 MES WHERE ST.STATIONID = MES.STATION AND MES.SN = ?"
+    records = PoReceipt.find_by_sql([sql, sn])
+    if records.present?
+      if records.first.STATION.eql?(stationname)
+        updateStationBySn(sn, get_next_stationname(records.first.STATIONID))
+        return 'PASS'
       end
     else
       return 'N/A'
     end
   end
 
-  def self.saveNextStation(sn, stationname)
-    sql = "SELECT STATION FROM PHICOMM_MES_STATION WHERE STATIONID = (SELECT MIN(STATIONID) FROM (SELECT STATIONID FROM PHICOMM_MES_STATION WHERE  STATIONID >= ?))"
-    records = PoReceipt.find_by_sql([sql, stationid])
+  def self.isExistStationByName(stationname)
+    sql = "SELECT STATIONID FROM PHICOMM_MES_STATION WHERE STATION = ? "
+    records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
-      return records.first.STATION
+      return true
     else
-      return 'N/A'
+      return false
     end
+  end
+
+  def self.updateStationBySn(sn, stationname)
+    sql = "UPDATE PHICOMM_MES_001 SET STATION = ?,STATION_UP_DT = SYSDATE WHERE SN = ?"
+    PoReceipt.connection.execute([sql,stationname,sn])
   end
 end
 
