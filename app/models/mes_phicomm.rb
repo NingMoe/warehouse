@@ -385,6 +385,8 @@
     records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
       if records.first.STATION == stationname
+
+      end
     else
       return 'N/A'
     end
