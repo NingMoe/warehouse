@@ -17,6 +17,20 @@
     end
   end
 
+  def sn_check_sn_view
+  end
+
+  def sn_check_sn_post
+    @error_msg = nil
+    barcode = params[:barcode]
+    kcode = params[:kcode]
+    if barcode.eql?(kcode)
+      @kcode = kcode
+    else
+      @error_msg = 'SN不相同'
+    end
+  end
+
   def check_kcode_view
   end
 
