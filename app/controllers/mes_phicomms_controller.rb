@@ -35,7 +35,6 @@
     else
       @error_msg = kcode
     end
-    end
   end
 
   def query_cartonnumber_view
