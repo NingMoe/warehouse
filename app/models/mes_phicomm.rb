@@ -15,13 +15,10 @@
     sql = "select sn,kcode from txdb.phicomm_mes_001 where sn=? and kcode=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn, barcode_kcode])
     if records.present?
-      result[0] = records.first.sn
-      result[1] = records.first.kcode
+      return [records.first.sn,records.first.kcode]
     else
-      result[0] = 'N/A'
-      result[1] = 'N/A'
+      return ['N/A', 'N/A']
     end
-    result
   end
 
   def self.print_mac_addr(barcode_sn, printer_ip)
@@ -373,5 +370,34 @@
     PoReceipt.connection.execute(sql)
   end
 
+  def self.get_next_stationname(stationid)
+    sql = "SELECT STATION FROM PHICOMM_MES_STATION WHERE STATIONID = (SELECT MIN(STATIONID) FROM (SELECT STATIONID FROM PHICOMM_MES_STATION WHERE  STATIONID >= ?))"
+    records = PoReceipt.find_by_sql([sql, stationid])
+    if records.present?
+      return records.first.STATION
+    else
+      return 'N/A'
+    end
+  end
+
+  def self.checkRoute(sn, stationname)
+    sql = "SELECT ST.STATION, ST.STATIONID FROM PHICOMM_MES_STATION ST,PHICOMM_MES_001 MES WHERE ST.STATIONID = MES.STATION AND MES.SN = ?"
+    records = PoReceipt.find_by_sql([sql, stationname])
+    if records.present?
+      if records.first.STATION == stationname
+    else
+      return 'N/A'
+    end
+  end
+
+  def self.saveNextStation(sn, stationname)
+    sql = "SELECT STATION FROM PHICOMM_MES_STATION WHERE STATIONID = (SELECT MIN(STATIONID) FROM (SELECT STATIONID FROM PHICOMM_MES_STATION WHERE  STATIONID >= ?))"
+    records = PoReceipt.find_by_sql([sql, stationid])
+    if records.present?
+      return records.first.STATION
+    else
+      return 'N/A'
+    end
+  end
 end
 
