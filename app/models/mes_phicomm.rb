@@ -42,7 +42,7 @@
         ^LL0177
         ^LS0
         ^BY2,3,56^FT76,137^BCN,,N,N
-        ^FD>:#{mac_add}^FS
+        ^FD#{mac_add}^FS
         ^FT138,66^A0N,25,24^FH
         ^FD#{mac_add}^FS
         ^FT90,66^A0N,25,24^FH
@@ -170,7 +170,7 @@
       ^LL0177
       ^LS0
       ^BY2,3,56^FT76,137^BCN,,N,N
-      ^FD>:#{sn}^FS
+      ^FD#{sn}^FS
       ^FT138,66^A0N,25,24^FH
       ^FD#{sn}^FS
       ^FT90,66^A0N,25,24^FH
@@ -390,7 +390,7 @@
     if records.present?
       cur_stationid = records.first.STATION
       cur_stationname = records.first.STATION_NAME
-      next_stationid = records.first.NEXT_STATION
+      next_stationid = records.first.NEXT_STATIONID
       next_stationname = records.first.NEXT_STATION_NAME
       if cur_stationid.eql?(stationid)
         return 'PASS'
