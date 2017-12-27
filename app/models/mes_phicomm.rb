@@ -11,6 +11,17 @@
     sn
   end
 
+  def self.sn_check_sn(barcode_sn)
+    sql = "select sn from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      sn = records.first.sn
+    else
+      sn = 'N/A'
+    end
+    sn
+  end
+
   def self.check_kcode(barcode_sn, barcode_kcode)
     sql = "select sn,kcode,station from txdb.phicomm_mes_001 where sn=? and kcode=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn, barcode_kcode])
