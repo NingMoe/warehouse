@@ -41,17 +41,17 @@
     stationname = "90"
     sn,kcode,station = MesPhicomm.check_kcode(barcode, kcode)
     if sn.eql?('N/A')
-      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
-    end
-    if station.eql?('70')
-      @error_msg = 'SN测试站不对！'
+      @error_msg = 'SN不存在'
     end
     if kcode.eql?('N/A')
-      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
+      @error_msg += 'Kcode不存在'
+    end
+    if !station.eql?('70')
+      @error_msg += "SN测试站不对！测试站为"
     else
       sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
-      PoReceipt.connection.execute([sql])
-      @error_msg = kcode
+      PoReceipt.connection.execute(sql)
+      @kcode = kcode
     end
   end
 
@@ -158,7 +158,7 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
-    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+    @mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
     if @mac_addr.eql?('N/A')
       @error_msg = 'S/N不存在或者錯誤!'
     elsif not @mac_addr.present?
