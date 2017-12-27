@@ -20,22 +20,22 @@
           %tbody#status_tbody
 
   .col-xs-12.col-sm-6
-    .panel.panel-default
-      .panel-heading
-        .panel-title
-          查询结果
-      .panel-body
-        %h4#cartonnumber
-        %p
-        %h4#sn1
-        %h4#sn2
-        %h4#sn3
-        %h4#sn4
-        %h4#sn5
-        %h4#sn6
-        %h4#sn7
-        %h4#sn8
-        %h4#sn9
+    = form_tag(export_to_excel_download_mes_phicomms_path, method: 'post') do
+      .panel.panel-default
+        .panel-heading
+          .panel-title
+            查询结果
+        .panel-body
+          = hidden_field_tag 'sn_text'
+          %h4#snid
+        .panel-footer
+          = button_tag id:'btn-excel', type: 'button', class: 'btn btn-primary' do
+            %span.glyphicon.glyphicon-download-alt
+            %b
+              EXCEL
+          .tab-2
+
+          = link_to '清空重置', export_to_excel_view_mes_phicomms_path, class: 'btn btn-default'
 
 :javascript
   var rowCounter = 0;
@@ -57,9 +57,13 @@
         url: '/mes_phicomms/export_to_excel_post',
         async: false,
         method: 'post',
-        data: {barcode: barcode, rowcounter: rowCounter}
+        data: {barcode: barcode, rowcounter: rowCounter, sn_text: $('#sn_text').val()}
       })
       $('#barcode').val('');
+    });
+
+    $('#btn-excel').click(function(){
+        this.form.submit();
     });
 
   })

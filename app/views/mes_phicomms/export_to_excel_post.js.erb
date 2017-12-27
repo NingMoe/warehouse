@@ -7,3 +7,7 @@ $('#s<%= params[:rowcounter] %>').text('OK');
 $('#s<%= params[:rowcounter] %>').addClass('success');
 $('#t<%= params[:rowcounter] %>').addClass('success');
 <% end %>
+
+$('#sn_text').val('<%= @sn_array.join(",") %>');
+
+$('#snid').html('<%= @sn_array.join("<br/>").html_safe %>');

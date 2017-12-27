@@ -186,11 +186,21 @@
     barcode = params[:barcode]
     sn_text = params[:sn_text]
     @sn_array = []
-    sql = "select * from txdb.phicomm_mes_001 where (sn=?) or (cartonnumber=?) or (mac_add=?) or(kcode=?)"
+    @sn_array = sn_text.split(',') if sn_text.present?
+    sql = "select sn from txdb.phicomm_mes_001 where (sn=?) or (cartonnumber=?) or (mac_add=?) or(kcode=?)"
     rows = PoReceipt.find_by_sql([sql, barcode, barcode, barcode, barcode])
-    rows.each {|row| @sn_array.append row.sn}
-    (@sn_array.size..8).each {@sn_array.append ''}
+    rows.each {|row| @sn_array.append row.sn if not @sn_array.include?(row.sn)}
     @error_msg = rows.present? ? '' : '外箱條碼不存在!'
+  end
+
+  def export_to_excel_download
+    sn_text = params[:sn_text]
+    @sn_array = []
+    @sn_array = sn_text.split(',') if sn_text.present?
+    sql = "select * from txdb.phicomm_mes_001 where sn in (?)"
+    rows = PoReceipt.find_by_sql([sql, @sn_array])
+    excel = Excel.resultset(rows)
+    send_data excel.to_stream.read, type: "application/xlsx", filename: "filename.xlsx"
   end
 
   def get_product_info
