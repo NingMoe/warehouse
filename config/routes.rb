@@ -28,7 +28,7 @@ Rails.application.routes.draw do
     get :check_kcode_view, on: :collection
     post :check_kcode_post, on: :collection
     get :export_to_excel_view, on: :collection
-    post :export_to_excel_view, on: :collection
+    post :export_to_excel_post, on: :collection
     get :sn_check_sn_view, on: :collection
   end
 
