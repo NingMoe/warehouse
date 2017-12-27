@@ -12,12 +12,12 @@
   end
 
   def self.check_kcode(barcode_sn, barcode_kcode)
-    sql = "select sn,kcode from txdb.phicomm_mes_001 where sn=? and kcode=?"
+    sql = "select sn,kcode,station from txdb.phicomm_mes_001 where sn=? and kcode=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn, barcode_kcode])
     if records.present?
-      return [records.first.sn,records.first.kcode]
+      return [records.first.sn,records.first.kcode,records.first.station]
     else
-      return ['N/A', 'N/A']
+      return ['N/A', 'N/A', 'N/A']
     end
   end
 
