@@ -197,7 +197,7 @@
     sn_text = params[:sn_text]
     @sn_array = []
     @sn_array = sn_text.split(',') if sn_text.present?
-    sql = "select * from txdb.phicomm_mes_001 where sn in (?)"
+    sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 where sn in (?)"
     rows = PoReceipt.find_by_sql([sql, @sn_array])
     excel = Excel.resultset(rows)
     send_data excel.to_stream.read, type: "application/xlsx", filename: "filename.xlsx"
