@@ -7,4 +7,16 @@ $(document).ready(function (){
         this.form.submit();
     });
 
+    $(".clickAll").click(function () {
+        if ($(".clickAll").prop("checked")) {
+            $("input[name='ids[]']").each(function () {
+                $(this).prop("checked", true);
+            });
+        }
+        else {
+            $("input[name='ids[]']").each(function () {
+                $(this).prop("checked", false);
+            });
+        }
+    });
 });

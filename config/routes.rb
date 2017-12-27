@@ -27,6 +27,8 @@ Rails.application.routes.draw do
     post :query_cartonnumber_post, on: :collection
     get :check_kcode_view, on: :collection
     post :check_kcode_post, on: :collection
+    get :export_to_excel_view, on: :collection
+    post :export_to_excel_view, on: :collection
   end
 
   resources :mes do
@@ -85,6 +87,7 @@ Rails.application.routes.draw do
     get :mseg_transfer_to_mes, on: :collection
     get :search_barcode, on: :collection
     get :transfer_to_mes, on: :member
+    post :received_excess_post, on: :collection
   end
 
   resources :reports do

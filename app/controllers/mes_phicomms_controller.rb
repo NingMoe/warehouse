@@ -173,6 +173,22 @@
     @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
   end
 
+
+  def export_to_excel_view
+
+  end
+
+  def export_to_excel_post
+    barcode = params[:barcode]
+    sn_text = params[:sn_text]
+    @sn_array = []
+    sql = "select * from txdb.phicomm_mes_001 where (sn=?) or (cartonnumber=?) or (mac_add=?) or(kcode=?)"
+    rows = PoReceipt.find_by_sql([sql, barcode, barcode, barcode, barcode])
+    rows.each {|row| @sn_array.append row.sn}
+    (@sn_array.size..8).each {@sn_array.append ''}
+    @error_msg = rows.present? ? '' : '外箱條碼不存在!'
+  end
+
   def get_product_info
     aufnr = (params[:mo_number] || '0').rjust(12, '0')
     @mo_number = ''
