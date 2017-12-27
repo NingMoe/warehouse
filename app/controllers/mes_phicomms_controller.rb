@@ -158,7 +158,7 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
-    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+    @mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
     if @mac_addr.eql?('N/A')
       @error_msg = 'S/N不存在或者錯誤!'
     elsif not @mac_addr.present?
