@@ -187,7 +187,7 @@
     records = PoReceipt.find_by_sql([sql, barcode_sn])
     if records.present?
       mac_add = records.first.mac_add
-      print_color_box_label(barcode_sn, printer_ip)
+      print_nameplate_box_label(barcode_sn, printer_ip)
     else
       mac_add = 'N/A'
     end

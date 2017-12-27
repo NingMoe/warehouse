@@ -50,8 +50,8 @@
       @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
     else
       sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
-      PoReceipt.connection.execute([sql])
-      @error_msg = kcode
+      PoReceipt.connection.execute(sql)
+      @kcode = kcode
     end
   end
 
