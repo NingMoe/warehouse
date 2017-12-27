@@ -380,20 +380,23 @@
     end
   end
 
-  def self.checkRoute(sn, stationname)
-    # curr_stationid
-    # curr_stationname
+  def self.checkRoute(sn, stationid)
+    # cur_stationid
+    # cur_stationname
     # next_stationid
     # next_stationname
-    sql = "SELECT ST.STATION, ST.STATIONID FROM PHICOMM_MES_STATION ST,PHICOMM_MES_001 MES WHERE ST.STATIONID = MES.STATION AND MES.SN = ?"
+    sql = "with cur_station as (select a.sn, a.station,b.station station_name from txdb.phicomm_mes_001 a left join txdb.phicomm_mes_station b on b.stationid=a.station where a.sn= ?), next_station as (  select min(stationid) stationid from txdb.phicomm_mes_station a where a.stationid > (select station from cur_station)) select a.sn, a.station,a.station_name, b.stationid next_stationid, c.station next_station_name from cur_station a, next_station b  left join txdb.phicomm_mes_station c on c.stationid = b.stationid "
     records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
-      next_stationname = get_next_stationname(records.first.STATIONID)
-      if records.first.STATION.eql?(stationname)
+      cur_stationid = records.first.STATION
+      cur_stationname = records.first.STATION_NAME
+      next_stationid = records.first.NEXT_STATION
+      next_stationname = records.first.NEXT_STATION_NAME
+      if cur_stationid.eql?(stationid)
         return 'PASS'
       end
     else
-      return 'SN:#{sn}  现在应该测试#{next_stationname}站!'
+      return "SN:'#{sn}'  现在应该测试'#{next_stationname}'站!"
     end
   end
 
@@ -411,7 +414,7 @@
   end
 
   def self.isExistStationByName(stationname)
-    sql = "SELECT STATIONID FROM PHICOMM_MES_STATION WHERE STATION = ? "
+    sql = "select stationid from phicomm_mes_station where station = ? "
     records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
       return true
@@ -421,8 +424,8 @@
   end
 
   def self.updateStationBySn(sn, stationname)
-    sql = "UPDATE PHICOMM_MES_001 SET STATION = ?,STATION_UP_DT = SYSDATE WHERE SN = ?"
-    PoReceipt.connection.execute([sql,stationname,sn])
+    sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
+    PoReceipt.connection.execute(sql)
   end
 end
 

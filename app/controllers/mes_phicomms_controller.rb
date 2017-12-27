@@ -41,13 +41,13 @@
     stationname = "90"
     sn,kcode,station = MesPhicomm.check_kcode(barcode, kcode)
     if sn.eql?('N/A')
-      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
-    end
-    if station.eql?('70')
-      @error_msg = 'SN测试站不对！'
+      @error_msg = 'SN不存在'
     end
     if kcode.eql?('N/A')
-      @error_msg = 'SN不存在或Kcode不存在，或SN与Kcode没有绑定'
+      @error_msg += 'Kcode不存在'
+    end
+    if !station.eql?('70')
+      @error_msg += "SN测试站不对！测试站为"
     else
       sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
       PoReceipt.connection.execute(sql)
