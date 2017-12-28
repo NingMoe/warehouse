@@ -31,4 +31,12 @@ class MesController < ApplicationController
     redirect_to display_stock_area_info_mes_url, notice: '刪除完成'
   end
 
+  def create_new_barcode_by_lot_view
+
+  end
+
+  def create_new_barcode_by_lot_post
+
+  end
+
 end
