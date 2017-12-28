@@ -11,6 +11,17 @@
     sn
   end
 
+  def self.sn_check_sn(barcode_sn)
+    sql = "select sn from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      sn = records.first.sn
+    else
+      sn = 'N/A'
+    end
+    sn
+  end
+
   def self.check_kcode(barcode_sn, barcode_kcode)
     sql = "select sn,kcode,station from txdb.phicomm_mes_001 where sn=? and kcode=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn, barcode_kcode])
@@ -381,35 +392,41 @@
   end
 
   def self.checkRoute(sn, stationid)
-    # cur_stationid
-    # cur_stationname
-    # next_stationid
-    # next_stationname
-    sql = "with cur_station as (select a.sn, a.station,b.station station_name from txdb.phicomm_mes_001 a left join txdb.phicomm_mes_station b on b.stationid=a.station where a.sn= ?), next_station as (  select min(stationid) stationid from txdb.phicomm_mes_station a where a.stationid > (select station from cur_station)) select a.sn, a.station,a.station_name, b.stationid next_stationid, c.station next_station_name from cur_station a, next_station b  left join txdb.phicomm_mes_station c on c.stationid = b.stationid "
-    records = PoReceipt.find_by_sql([sql, stationname])
+    result = "error"
+    cur_stationid = ""
+    cur_stationname = ""
+    next_stationid = ""
+    next_stationname = ""
+    sql = "with cur_station as (select a.sn, a.station,b.station station_name from txdb.phicomm_mes_001 a left join txdb.phicomm_mes_station b on b.stationid=a.station where a.sn= '#{sn}'), next_station as (  select min(stationid) stationid from txdb.phicomm_mes_station a where a.stationid > (select station from cur_station)) select a.sn, a.station,a.station_name, b.stationid next_stationid, c.station next_station_name from cur_station a, next_station b  left join txdb.phicomm_mes_station c on c.stationid = b.stationid "
+    records = PoReceipt.find_by_sql(sql)
     if records.present?
-      cur_stationid = records.first.STATION
-      cur_stationname = records.first.STATION_NAME
-      next_stationid = records.first.NEXT_STATIONID
-      next_stationname = records.first.NEXT_STATION_NAME
+      cur_stationid = records.first.station
+      cur_stationname = records.first.station_name
+      next_stationid = records.first.next_stationid
+      next_stationname = records.first.next_station_name
       if cur_stationid.eql?(stationid)
-        return 'PASS'
+        result = "ok"
+      else
+        result = "SN #{sn} 现在应该测试#{cur_stationname}站!"
       end
-    else
-      return "SN:'#{sn}'  现在应该测试'#{next_stationname}'站!"
     end
   end
 
-  def self.saveNextStation(sn, stationname)
-    sql = "SELECT ST.STATION, ST.STATIONID FROM PHICOMM_MES_STATION ST,PHICOMM_MES_001 MES WHERE ST.STATIONID = MES.STATION AND MES.SN = ?"
+  def self.saveNextStation(sn, stationid)
+    cur_stationid = ""
+    cur_stationname = ""
+    next_stationid = ""
+    next_stationname = ""
+    sql = "with cur_station as (select a.sn, a.station,b.station station_name from txdb.phicomm_mes_001 a left join txdb.phicomm_mes_station b on b.stationid=a.station where a.sn= ?), next_station as (  select min(stationid) stationid from txdb.phicomm_mes_station a where a.stationid > (select station from cur_station)) select a.sn, a.station,a.station_name, b.stationid next_stationid, c.station next_station_name from cur_station a, next_station b  left join txdb.phicomm_mes_station c on c.stationid = b.stationid "
     records = PoReceipt.find_by_sql([sql, sn])
     if records.present?
-      if records.first.STATION.eql?(stationname)
-        updateStationBySn(sn, get_next_stationname(records.first.STATIONID))
-        return 'PASS'
+      cur_stationid = records.first.station
+      cur_stationname = records.first.station_name
+      next_stationid = records.first.next_stationid
+      next_stationname = records.first.next_station_name
+      if cur_stationid.eql?(stationid)
+        updateStationBySn(sn, next_stationid)
       end
-    else
-      return 'N/A'
     end
   end
 
