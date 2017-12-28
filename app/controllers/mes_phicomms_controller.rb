@@ -14,6 +14,14 @@
     sn = MesPhicomm.check_sn(barcode)
     if sn.eql?('N/A')
       @error_msg = 'SN不存在'
+    else
+      msg = MesPhicomm.checkRoute(barcode, "70")
+      if msg.eql?("ok")
+        MesPhicomm.saveNextStation(sn, "70")
+        @kcode = "#{barcode} 完成过站，去下一站！"
+      else
+        @error_msg = msg
+      end
     end
   end
 
@@ -25,7 +33,13 @@
     barcode = params[:barcode]
     kcode = params[:kcode]
     if barcode.eql?(kcode)
-      @kcode = kcode
+      msg = MesPhicomm.checkRoute(barcode, "80")
+      if msg.eql?("ok")
+        MesPhicomm.saveNextStation(sn, "80")
+        @kcode = "#{barcode} 完成过站，去下一站！"
+      else        
+        @kcode = kcode
+      end
     else
       @error_msg = 'SN不相同'
     end
@@ -38,7 +52,6 @@
     @error_msg = nil
     barcode = params[:barcode]
     kcode = params[:kcode]
-    stationname = "90"
     sn,kcode,station = MesPhicomm.check_kcode(barcode, kcode)
     if sn.eql?('N/A')
       @error_msg = 'SN不存在'
@@ -46,12 +59,16 @@
     if kcode.eql?('N/A')
       @error_msg += 'Kcode不存在'
     end
-    if !station.eql?('70')
-      @error_msg += "SN测试站不对！测试站为"
+
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "60")
+    if msg.eql?("ok")
+      MesPhicomm.saveNextStation(sn, "60")
+      @kcode = "完成过站，去下一站！"
+    elsif msg.eql?("error")
+      @error_msg = msg
     else
-      sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
-      PoReceipt.connection.execute(sql)
-      @kcode = kcode
+      @kcode = msg
     end
   end
 
@@ -77,6 +94,16 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
+# 先不处理过站检查
+    msg = MesPhicomm.checkRoute(barcode, "20")
+    if msg.eql?("ok")
+      MesPhicomm.saveNextStation(sn, "20")
+      @kcode = "完成过站，去下一站！"
+    elsif msg.eql?("error")
+      @error_msg = msg
+    else
+      @kcode = msg
+    end
     @sn = MesPhicomm.print_sn(barcode, printer_ip)
     if @sn.eql?('N/A')
       @error_msg = 'S/N不存在或者錯誤!'
@@ -128,8 +155,23 @@
     barcode = params[:barcode]
     @kcode = params[:kcode]
     @error_msg = nil
-    update_count = MesPhicomm.update_kcode(barcode, @kcode)
-    @error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "50")
+    if msg.eql?("ok")
+      update_count = MesPhicomm.update_kcode(barcode, @kcode)
+      if update_count == 0
+        MesPhicomm.saveNextStation(sn, "50")
+        @kcode = "完成过站，去下一站！"
+      end
+    elsif msg.eql?("error")
+      @error_msg = msg
+    else
+      @kcode = msg
+    end
+
+#不过站检查
+    #update_count = MesPhicomm.update_kcode(barcode, @kcode)
+    #@error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
   end
 
   def print_color_box_label_view
@@ -141,12 +183,32 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
-    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
-    if @mac_addr.eql?('N/A')
-      @error_msg = 'S/N不存在或者錯誤!'
-    elsif not @mac_addr.present?
-      @error_msg = 'S/N未和MAC地址綁定!'
+
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "70")
+    if msg.eql?("ok")
+      @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+      if @mac_addr.eql?('N/A')
+        @error_msg = 'S/N不存在或者錯誤!'
+      elsif not @mac_addr.present?
+        @error_msg = 'S/N未和MAC地址綁定!'
+      else
+        MesPhicomm.saveNextStation(sn, "70")
+        @kcode = "完成过站，去下一站！"
+      end
+    elsif msg.eql?("error")
+      @error_msg = msg
+    else
+      @kcode = msg
     end
+
+#不过站检查
+#    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
+#    if @mac_addr.eql?('N/A')
+#      @error_msg = 'S/N不存在或者錯誤!'
+#    elsif not @mac_addr.present?
+#      @error_msg = 'S/N未和MAC地址綁定!'
+#    end
   end
 
   def print_nameplate_box_label_view
@@ -158,12 +220,31 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
-    @mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
-    if @mac_addr.eql?('N/A')
-      @error_msg = 'S/N不存在或者錯誤!'
-    elsif not @mac_addr.present?
-      @error_msg = 'S/N未和MAC地址綁定!'
+
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "40")
+    if msg.eql?("ok")
+      @mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
+      if @mac_addr.eql?('N/A')
+        @error_msg = 'S/N不存在或者錯誤!'
+      elsif not @mac_addr.present?
+        @error_msg = 'S/N未和MAC地址綁定!'
+      else
+        MesPhicomm.saveNextStation(sn, "40")
+        @kcode = "完成过站，去下一站！"
+      end
+    elsif msg.eql?("error")
+      @error_msg = msg
+    else
+      @kcode = msg
     end
+#not guo zhan
+    #@mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
+    #if @mac_addr.eql?('N/A')
+    #  @error_msg = 'S/N不存在或者錯誤!'
+    #elsif not @mac_addr.present?
+    #  @error_msg = 'S/N未和MAC地址綁定!'
+    #end
   end
 
   def print_outside_box_label_view
@@ -174,7 +255,17 @@
   end
 
   def print_outside_box_label_post
-    @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "90")
+    if msg.eql?("ok")      
+      @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
+      MesPhicomm.saveNextStation(sn, "90")
+      @kcode = "完成过站，去下一站！"
+    elsif msg.eql?("error")
+      @error_msg = msg
+    else
+      @kcode = msg
+    end
   end
 
 
