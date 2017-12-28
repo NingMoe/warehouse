@@ -32,16 +32,21 @@
     @error_msg = nil
     barcode = params[:barcode]
     kcode = params[:kcode]
-    if barcode.eql?(kcode)
-      msg = MesPhicomm.checkRoute(barcode, "80")
-      if msg.eql?("ok")
-        MesPhicomm.saveNextStation(sn, "80")
-        @kcode = "#{barcode} 完成过站，去下一站！"
-      else        
-        @kcode = kcode
-      end
+    sn = MesPhicomm.isExistSn(barcode)
+    if sn.eql?('N/A')
+      @error_msg = 'SN不存在'
     else
-      @error_msg = 'SN不相同'
+      if barcode.eql?(kcode)
+        msg = MesPhicomm.checkRoute(barcode, "80")
+        if msg.eql?("ok")
+          MesPhicomm.saveNextStation(sn, "80")
+          @kcode = "#{barcode} 完成过站，去下一站！"
+        else        
+          @kcode = kcode
+        end
+      else
+        @error_msg = 'SN不相同'
+      end
     end
   end
 
@@ -54,7 +59,7 @@
     kcode = params[:kcode]
     sn,kcode,station = MesPhicomm.check_kcode(barcode, kcode)
     if sn.eql?('N/A')
-      @error_msg = 'SN不存在'
+      @error_msg = 'SN不存在 '
     end
     if kcode.eql?('N/A')
       @error_msg += 'Kcode不存在'
@@ -94,19 +99,19 @@
     barcode = params[:barcode]
     printer_ip = params[:printer_ip]
     @error_msg = nil
-# 先不处理过站检查
+# 处理过站检查
     msg = MesPhicomm.checkRoute(barcode, "20")
     if msg.eql?("ok")
-      MesPhicomm.saveNextStation(sn, "20")
-      @kcode = "完成过站，去下一站！"
-    elsif msg.eql?("error")
-      @error_msg = msg
-    else
-      @kcode = msg
+      @error_msg = MesPhicomm.print_sn(barcode, printer_ip)
+      MesPhicomm.saveNextStation(barcode, "20")
+      msg = "SN #{barcode}打印完成，去下一站！"
     end
-    @sn = MesPhicomm.print_sn(barcode, printer_ip)
-    if @sn.eql?('N/A')
-      @error_msg = 'S/N不存在或者錯誤!'
+    if !msg.eql?("ok")
+      if @error_msg.present?
+        @error_msg = msg
+      else
+        @error_msg = "S/N不存在或者不在此站!"
+      end
     end
   end
 
@@ -156,19 +161,27 @@
     @kcode = params[:kcode]
     @error_msg = nil
 #过站检查
-    msg = MesPhicomm.checkRoute(barcode, "50")
-    if msg.eql?("ok")
-      update_count = MesPhicomm.update_kcode(barcode, @kcode)
-      if update_count == 0
-        MesPhicomm.saveNextStation(sn, "50")
-        @kcode = "完成过站，去下一站！"
-      end
-    elsif msg.eql?("error")
-      @error_msg = msg
-    else
-      @kcode = msg
-    end
 
+    sn = MesPhicomm.isExistSn(@kcode)
+    if sn.eql?('N/A')
+      msg = MesPhicomm.checkRoute(barcode, "50")
+      if msg.eql?("ok")
+        update_count = MesPhicomm.update_kcode(barcode, @kcode)
+        if update_count == 0
+          MesPhicomm.saveNextStation(barcode, "50")
+          @kcode = "SN #{barcode} 完成过站，去下一站！"
+        end
+      end
+      if !msg.eql?("ok")
+        if @error_msg.present?
+          @error_msg = msg
+        else
+          @error_msg = "S/N不存在或者不在此站!"
+        end
+      end
+    else
+      @error_msg = "KCODE存在!"
+    end
 #不过站检查
     #update_count = MesPhicomm.update_kcode(barcode, @kcode)
     #@error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
@@ -193,13 +206,16 @@
       elsif not @mac_addr.present?
         @error_msg = 'S/N未和MAC地址綁定!'
       else
-        MesPhicomm.saveNextStation(sn, "70")
+        MesPhicomm.saveNextStation(barcode, "70")
         @kcode = "完成过站，去下一站！"
       end
-    elsif msg.eql?("error")
-      @error_msg = msg
-    else
-      @kcode = msg
+    end
+    if not msg.eql?("ok")
+      if @error_msg.present?
+        @error_msg = msg
+      else
+        @error_msg = "S/N不存在或者不在此站!"
+      end
     end
 
 #不过站检查
@@ -230,13 +246,16 @@
       elsif not @mac_addr.present?
         @error_msg = 'S/N未和MAC地址綁定!'
       else
-        MesPhicomm.saveNextStation(sn, "40")
+        MesPhicomm.saveNextStation(barcode, "40")
         @kcode = "完成过站，去下一站！"
       end
-    elsif msg.eql?("error")
-      @error_msg = msg
-    else
-      @kcode = msg
+    end
+    if !msg.eql?("ok")
+      if @error_msg.present?
+        @error_msg = msg
+      else
+        @error_msg = "S/N不存在或者不在此站!"
+      end
     end
 #not guo zhan
     #@mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
@@ -255,17 +274,7 @@
   end
 
   def print_outside_box_label_post
-#过站检查
-    msg = MesPhicomm.checkRoute(barcode, "90")
-    if msg.eql?("ok")      
-      @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
-      MesPhicomm.saveNextStation(sn, "90")
-      @kcode = "完成过站，去下一站！"
-    elsif msg.eql?("error")
-      @error_msg = msg
-    else
-      @kcode = msg
-    end
+    @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
   end
 
 

@@ -85,10 +85,10 @@
       ^PW531
       ^LL0130
       ^LS0
-      ^BY2,3,56^FT23,111^BCN,,N,N
+      ^BY2,3,60^FT54,118^BCN,,N,N
       ^FD#{sn}^FS
-      ^FT86,40^A0N,25,24^FH\^FD#{sn}^FS
-      ^FT38,40^A0N,25,24^FH\^FDSN:^FS
+      ^FT103,40^A0N,25,24^FH\^FD#{sn}^FS
+      ^FT55,40^A0N,25,24^FH\^FDSN:^FS
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new(printer_ip, '9100')
@@ -431,13 +431,24 @@
   end
 
   def self.isExistStationByName(stationname)
-    sql = "select stationid from phicomm_mes_station where station = ? "
+    sql = "select stationid from txdb.phicomm_mes_station where station = ? "
     records = PoReceipt.find_by_sql([sql, stationname])
     if records.present?
       return true
     else
       return false
     end
+  end
+
+  def self.isExistSn(sn)
+    sql = "select sn from txdb.v_phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, sn])
+    if records.present?
+      sn = records.first.sn
+    else
+      sn = 'N/A'
+    end
+    sn
   end
 
   def self.updateStationBySn(sn, stationname)
