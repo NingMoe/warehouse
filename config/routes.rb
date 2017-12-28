@@ -39,6 +39,8 @@ Rails.application.routes.draw do
     post :update_stock_area_info, on: :collection
     get :create_new_barcode_by_lot_view, on: :collection
     post :create_new_barcode_by_lot_post, on: :collection
+    get :sn_enquiry_by_lot_view, on: :collection
+    post :sn_enquiry_by_lot_post, on: :collection
   end
 
   resources :saprfcs do

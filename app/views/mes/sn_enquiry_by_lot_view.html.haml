@@ -1,0 +1,13 @@
+.col-xs-12.col-sm-6
+  = form_tag(sn_enquiry_by_lot_post_mes_path, method: 'post') do
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          查询料號/批次條碼(未上架)
+      .panel-body
+        .form-inputs
+          .form-group
+            = label_tag 'datas', '工廠 料號 批次'
+            = text_area_tag 'datas', '', class: 'form-control', placeholder: '工廠 料號 批次', size: '25x5'
+      .panel-footer
+        = render 'layouts/submit_button'

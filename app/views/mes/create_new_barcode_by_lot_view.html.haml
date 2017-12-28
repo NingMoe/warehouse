@@ -1,15 +1,13 @@
 .col-xs-12.col-sm-6
-  .panel.panel-default
-    .panel-heading
-      .panel-title
-        新建料號/批次條碼
-    .panel-body
-      = form_tag(create_new_barcode_by_lot_post_mes_path, method: 'post') do
-        .form-group
-          .form-inputs
-            = text_area_tag 'mblnrs', '', class: 'form-control', placeholder: '文件號碼', size: '25x3'
-        .form-group
-          = label_tag '文件年份', nil
-          = text_field_tag 'mjahr', Time.now.strftime("%Y"), class: 'form-control', placeholder: '文件年份'
-        .row
+  = form_tag(create_new_barcode_by_lot_post_mes_path, method: 'post') do
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          新建料號/批次條碼
+      .panel-body
+        .form-inputs
+          .form-group
+            = label_tag 'datas', '工廠 料號 批次 數量'
+            = text_area_tag 'datas', '', class: 'form-control', placeholder: '工廠 料號 批次 數量', size: '25x5'
+      .panel-footer
         = render 'layouts/submit_button'

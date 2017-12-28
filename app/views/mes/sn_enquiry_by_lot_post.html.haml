@@ -1,0 +1,24 @@
+.col-xs-12.col-sm-6
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        查询料號/批次條碼(未上架)
+    .table-responsive
+      %table.table.table-bordered
+        %thead
+          %tr
+            %th= '標籤ID'
+            %th= '料號'
+            %th= '批次'
+            %th= '工廠'
+            %th= '數量'
+            %th= '日期'
+        %tbody
+          - @rows.each do |row|
+            %tr
+              %td= row.sn_id
+              %td= row.wrds_item_code
+              %td= row.wrds_batch_sn
+              %td= row.wr_store_code
+              %td= row.wrds_recive_num
+              %td= row.count_time
