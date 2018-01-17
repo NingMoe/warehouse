@@ -1,0 +1,24 @@
+= render 'mes_phicomms/submenu'
+
+.col-xs-12.col-sm-6
+  = form_tag(change_station_post_mes_phicomms_path, method: 'post') do
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          回退站點
+      .panel-body
+        .form-inputs
+          .form-group
+            = label_tag 'datas', 'SN序號'
+            = text_area_tag 'datas', '', class: 'form-control', size: '25x5'
+
+          .form-group
+            = label_tag 'station', '回退站點'
+            = select_tag 'station', options_from_collection_for_select(@stations, "stationid", "name"), class: 'form-control', include_blank: true
+      .panel-footer
+        = render 'layouts/submit_button'
+
+:javascript
+  $(document).ready(function(){
+    $('#datas').focus();
+  });

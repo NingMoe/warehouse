@@ -32,6 +32,8 @@ Rails.application.routes.draw do
     post :export_to_excel_download, on: :collection
     get :sn_check_sn_view, on: :collection
     post :sn_check_sn_post, on: :collection
+    get :change_station_view, on: :collection
+    post :change_station_post, on: :collection
   end
 
   resources :mes do

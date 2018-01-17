@@ -1,5 +1,5 @@
 ﻿class MesPhicommsController < ApplicationController
-  skip_before_filter :authenticate_user!
+  skip_before_filter :authenticate_user!, except: [:change_station_view, :change_station_post]
 
   def index
 
@@ -330,6 +330,25 @@
     printer_ip = params[:printer_ip]
     MesPhicomm.update_printer(request.ip, program, printer_ip)
     render text: ''
+  end
+
+  def change_station_view
+    sql = "select * from txdb.phicomm_mes_users where lower(email) = ?"
+    user = PoReceipt.find_by_sql([sql, current_user.email])
+    if user.present?
+      @stations = PoReceipt.find_by_sql("select stationid, stationid||' '||station||' '||stationdesc name from txdb.phicomm_mes_station order by stationid")
+    else
+      redirect_to mes_phicomms_path, notice: '您沒有操作權限!'
+    end
+  end
+
+  def change_station_post
+    if params[:datas].present? and params[:station].present?
+      sn_list = text_area_to_array(params[:datas]).join("','")
+      sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}' where sn in ('#{sn_list}')"
+      PoReceipt.connection.execute(sql)
+    end
+    redirect_to change_station_view_mes_phicomms_path, notice: '已經更新完成...'
   end
 
 end
