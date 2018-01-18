@@ -167,7 +167,7 @@
       msg = MesPhicomm.checkRoute(barcode, "50")
       if msg.eql?("ok")
         update_count = MesPhicomm.update_kcode(barcode, @kcode)
-        if update_count == 0
+        if update_count != 0
           MesPhicomm.saveNextStation(barcode, "50")
           @kcode = "SN #{barcode} 完成过站，去下一站！"
         end

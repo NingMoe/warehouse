@@ -174,19 +174,23 @@
 
   def self.print_color_box_label(sn, printer_ip)
     zpl_command = "
-      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
-      ^PW531
-      ^LL0177
+      ^PW1768
+      ^LL0413
       ^LS0
-      ^BY2,3,56^FT76,137^BCN,,N,N
+      ^FT37,48
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY2,3,72
+      ^FT39,128^BCN,,N,Y
       ^FD#{sn}^FS
-      ^FT138,66^A0N,25,24^FH
-      ^FD#{sn}^FS
-      ^FT90,66^A0N,25,24^FH
-      ^FDSN:^FS
+      ^FT37,161
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDH/W Ver.:A1^FS
       ^PQ1,0,1,Y^XZ
+
     "
     s = TCPSocket.new(printer_ip, '9100')
     s.write zpl_command
@@ -207,15 +211,17 @@
 
   def self.print_nameplate_box_label(sn, printer_ip)
     zpl_command = "
-      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD30^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
-      ^PW768
+      ^PW1768
       ^LL0413
       ^LS0
-      ^FT93,239^A0N,22,19^FH\^FDS/N:^FS
-      ^FT129,240^A0N,21,21^FH\^FD#{sn}^FS
-      ^BY1,3,47^FT92,295^BCN,,N,N
+      ^FT45,480
+      ^A@N,40,40,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY3,3,78
+      ^FT47,570^BCN,,N,Y
       ^FD#{sn}^FS
       ^PQ1,0,1,Y^XZ
     "
@@ -455,5 +461,34 @@
     sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
     PoReceipt.connection.execute(sql)
   end
+
+  def self.testlum
+    sn = "CBDEC2101K00474"
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW1768
+      ^LL0413
+      ^LS0
+      ^FT37,48
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY2,3,72
+      ^FT39,128^BCN,,N,Y
+      ^FD#{sn}^FS
+      ^FT37,161
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDH/W Ver.:A1^FS
+      ^PQ1,0,1,Y^XZ
+
+"
+    s = TCPSocket.new('172.91.39.41', '9100')
+    s.write zpl_command
+    s.close
+  end
+	
+
+
 end
 
