@@ -1,4 +1,4 @@
-﻿class MesPhicommsController < ApplicationController
+class MesPhicommsController < ApplicationController
   skip_before_filter :authenticate_user!, except: [:change_station_view, :change_station_post]
 
   def index
@@ -343,10 +343,16 @@
   end
 
   def change_station_post
+    current_user = @User
     if params[:datas].present? and params[:station].present?
       sn_list = text_area_to_array(params[:datas]).join("','")
-      sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}' where sn in ('#{sn_list}')"
-      PoReceipt.connection.execute(sql)
+      if params[:station].to_i <= 50
+        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
+        PoReceipt.connection.execute(sql)
+      else
+        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
+        PoReceipt.connection.execute(sql)
+      end
     end
     redirect_to change_station_view_mes_phicomms_path, notice: '已經更新完成...'
   end
