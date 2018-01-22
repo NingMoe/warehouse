@@ -346,7 +346,10 @@ class MesPhicommsController < ApplicationController
     current_user = @User
     if params[:datas].present? and params[:station].present?
       sn_list = text_area_to_array(params[:datas]).join("','")
-      if params[:station].to_i <= 50
+      if params[:station].to_i == 10
+        sql = "delete txdb.phicomm_mes_001 where sn in ('#{sn_list}')"
+        PoReceipt.connection.execute(sql)
+      elsif params[:station].to_i <= 50 and params[:station].to_i > 10
         sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       else
