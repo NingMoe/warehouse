@@ -329,6 +329,81 @@
     s.close
   end
 
+  def self.update_pallet(params)
+    # params field
+    # barcode
+    # rowcounter
+    # printer_ip
+    # pack_qty
+    # carton_number
+    # sn1
+    # sn2
+    # sn3
+    # sn4
+    # sn5
+    # sn6
+    # sn7
+    # sn8
+    # sn9
+    # sn10
+    # sn11
+    # sn12
+    # sn13
+    # sn14
+    # sn15
+    # sn16
+    error_msgs = []
+    error_msgs.append "包裝數量不可為空!" if params[:pack_qty].blank?
+    error_msgs.append "包裝栈板號不可為空!" if params[:carton_number].blank?
+    error_msgs.append "掃入條碼不可為空!" if params[:barcode].blank?
+
+    sn_array = []
+    (1..16).each do |i|
+      sn_array.append params["sn#{i}"] if params["sn#{i}"].present?
+    end
+    error_msgs.append "條碼重複掃描!" if sn_array.include?(params[:barcode])
+
+    sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, params[:barcode]])
+    if records.present?
+      mac_add = records.first.mac_add
+      error_msgs.append "S/N未和MAC地址綁定!" if mac_add.blank?
+    else
+      error_msgs.append "S/N不存在或者錯誤!"
+    end
+
+    carton_number = (params[:carton_number] || '1').to_i
+    if error_msgs.blank?
+      #加入SN數組
+      sn_array.append params[:barcode]
+      if (params[:pack_qty] || '1').to_i == sn_array.size
+        label_barcode = "PA#{carton_number.to_s.rjust(5, '0')}"
+        sn_array_text = sn_array.join("','")
+        sql = "update txdb.phicomm_mes_001 set palletnumber = '#{label_barcode}' where sn in ('#{sn_array_text}')"
+        PoReceipt.connection.execute sql
+        #避免SN數組少於16個元素
+        (sn_array.size..16).each {sn_array.append ''}
+
+        # 打印标签
+        #update_pallet_label(label_barcode, palletnumber, params)
+        carton_number += 1
+        sn_array.clear
+      end
+    end
+    (sn_array.size..16).each {sn_array.append ''}
+    return [sn_array, error_msgs, mac_add, carton_number.to_s.rjust(5, '0')]
+  end
+  
+  def self.update_pallet_label(label_barcode, palletnumber, params)
+    update_count = 0
+    sql = "update txdb.phicomm_mes_001 set palletnumber='#{palletnumber}' where sn='#{label_barcode}'"
+    begin
+      update_count = PoReceipt.connection.execute(sql)
+    rescue
+    end
+    update_count
+  end
+  
   def self.update_kcode(barcode, kcode)
     update_count = 0
     sql = "update txdb.phicomm_mes_001 set kcode='#{kcode}' where (sn='#{barcode}' or mac_add='#{barcode}')"
@@ -432,6 +507,11 @@
 
   def self.updateStationBySn(sn, stationname)
     sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
+    PoReceipt.connection.execute(sql)
+  end
+
+  def self.test_log(sn, stationname,testitem,testvalue,testresult,stime,pcname,created_dt)
+    sql = "insert into txdb.phicomm_mes_log(sn,station,testitem,testvalue,testresult,stime,pcname,created_dt) values('#{sn}','#{stationname}','#{testitem}','#{testvalue}','#{testresult}','#{stime}','#{pcname}',sysdate) "
     PoReceipt.connection.execute(sql)
   end
 

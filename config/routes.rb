@@ -34,6 +34,8 @@ Rails.application.routes.draw do
     post :sn_check_sn_post, on: :collection
     get :change_station_view, on: :collection
     post :change_station_post, on: :collection
+    get :update_pallet_label_view, on: :collection
+    post :update_pallet_label_post, on: :collection
   end
 
   resources :mes do

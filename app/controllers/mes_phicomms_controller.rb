@@ -41,6 +41,7 @@ class MesPhicommsController < ApplicationController
         if msg.eql?("ok")
           MesPhicomm.saveNextStation(sn, "80")
           @kcode = "#{barcode} 完成过站，去下一站！"
+		  MesPhicomm.test_log(barcode, '80','','',barcode+' 完成过站，去下一站！','','','')
         else        
           @kcode = kcode
         end
@@ -70,10 +71,16 @@ class MesPhicommsController < ApplicationController
     if msg.eql?("ok")
       MesPhicomm.saveNextStation(sn, "60")
       @kcode = "完成过站，去下一站！"
+	  if @error_msg.eql?('N/A') or @error_msg.eql?('')
+	    MesPhicomm.test_log(barcode, '60','',@kcode,@error_msg,'','','')
+	  else
+	    MesPhicomm.test_log(barcode, '60','','',@error_msg,'','','')
+	  end	
     elsif msg.eql?("error")
       @error_msg = msg
     else
       @kcode = msg
+	  MesPhicomm.test_log(barcode, '60','','',msg,'','','')
     end
   end
 
@@ -105,6 +112,7 @@ class MesPhicommsController < ApplicationController
       @error_msg = MesPhicomm.print_sn(barcode, printer_ip)
       MesPhicomm.saveNextStation(barcode, "20")
       msg = "SN #{barcode}打印完成，去下一站！"
+	  MesPhicomm.test_log('#{barcode}', '20','','',msg,'','','')
     end
     if !msg.eql?("ok")
       if @error_msg.present?
@@ -277,6 +285,16 @@ class MesPhicommsController < ApplicationController
     @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.print_outside_box(params)
   end
 
+  def update_pallet_label_view
+    program = "#{controller_name}.#{action_name}"
+    @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+    @pack_qty = 16
+    @carton_number = '00001'
+  end
+
+  def update_pallet_label_post
+    @sn_array, @error_msgs, @mac_add, @carton_number = MesPhicomm.update_pallet(params)
+  end
 
   def export_to_excel_view
 
@@ -335,6 +353,7 @@ class MesPhicommsController < ApplicationController
   def change_station_view
     sql = "select * from txdb.phicomm_mes_users where lower(email) = ?"
     user = PoReceipt.find_by_sql([sql, current_user.email])
+    @current_user_email = current_user.email
     if user.present?
       @stations = PoReceipt.find_by_sql("select stationid, stationid||' '||station||' '||stationdesc name from txdb.phicomm_mes_station order by stationid")
     else
@@ -343,7 +362,6 @@ class MesPhicommsController < ApplicationController
   end
 
   def change_station_post
-    current_user = @User
     if params[:datas].present? and params[:station].present?
       sn_list = text_area_to_array(params[:datas]).join("','")
       if params[:station].to_i == 10
@@ -353,7 +371,7 @@ class MesPhicommsController < ApplicationController
         sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       else
-        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
+        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', station_edit_user = '#{@current_user_email}', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       end
     end
