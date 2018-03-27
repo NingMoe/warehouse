@@ -315,7 +315,7 @@ class MesPhicommsController < ApplicationController
     sn_text = params[:sn_text]
     @sn_array = []
     @sn_array = sn_text.split(',') if sn_text.present?
-    sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 where sn in (?)"
+    sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid,created_dt from txdb.phicomm_mes_001 where sn in (?)"
     rows = PoReceipt.find_by_sql([sql, @sn_array])
     excel = Excel.resultset(rows)
     send_data excel.to_stream.read, type: "application/xlsx", filename: "filename.xlsx"
@@ -377,5 +377,16 @@ class MesPhicommsController < ApplicationController
     end
     redirect_to change_station_view_mes_phicomms_path, notice: '已經更新完成...'
   end
-
+  
+  def search_barcode
+    @mesPhicomms = []
+    check = "#{params[:barcode]}"
+    if check.present?
+      sql = "
+        select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 
+            where sn like '%#{params[:barcode]}%'
+        "
+      @mesPhicomms = PoReceipt.find_by_sql(sql)
+    end
+  end
 end
