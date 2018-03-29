@@ -41,8 +41,8 @@ class MesPhicommsController < ApplicationController
         if msg.eql?("ok")
           MesPhicomm.saveNextStation(sn, "80")
           @kcode = "#{barcode} 完成过站，去下一站！"
-		  MesPhicomm.test_log(barcode, '80','','',barcode+' 完成过站，去下一站！','','','')
-        else        
+          MesPhicomm.test_log(barcode, '80', '', '', barcode + ' 完成过站，去下一站！', '', '', '')
+        else
           @kcode = kcode
         end
       else
@@ -58,7 +58,7 @@ class MesPhicommsController < ApplicationController
     @error_msg = nil
     barcode = params[:barcode]
     kcode = params[:kcode]
-    sn,kcode,station = MesPhicomm.check_kcode(barcode, kcode)
+    sn, kcode, station = MesPhicomm.check_kcode(barcode, kcode)
     if sn.eql?('N/A')
       @error_msg = 'SN不存在 '
     end
@@ -71,16 +71,16 @@ class MesPhicommsController < ApplicationController
     if msg.eql?("ok")
       MesPhicomm.saveNextStation(sn, "60")
       @kcode = "完成过站，去下一站！"
-	  if @error_msg.eql?('N/A') or @error_msg.eql?('')
-	    MesPhicomm.test_log(barcode, '60','',@kcode,@error_msg,'','','')
-	  else
-	    MesPhicomm.test_log(barcode, '60','','',@error_msg,'','','')
-	  end	
+      if @error_msg.eql?('N/A') or @error_msg.eql?('')
+        MesPhicomm.test_log(barcode, '60', '', @kcode, @error_msg, '', '', '')
+      else
+        MesPhicomm.test_log(barcode, '60', '', '', @error_msg, '', '', '')
+      end
     elsif msg.eql?("error")
       @error_msg = msg
     else
       @kcode = msg
-	  MesPhicomm.test_log(barcode, '60','','',msg,'','','')
+      MesPhicomm.test_log(barcode, '60', '', '', msg, '', '', '')
     end
   end
 
@@ -112,7 +112,7 @@ class MesPhicommsController < ApplicationController
       @error_msg = MesPhicomm.print_sn(barcode, printer_ip)
       MesPhicomm.saveNextStation(barcode, "20")
       msg = "SN #{barcode}打印完成，去下一站！"
-	  MesPhicomm.test_log('#{barcode}', '20','','',msg,'','','')
+      MesPhicomm.test_log('#{barcode}', '20', '', '', msg, '', '', '')
     end
     if !msg.eql?("ok")
       if @error_msg.present?
@@ -191,8 +191,8 @@ class MesPhicommsController < ApplicationController
       @error_msg = "KCODE存在!"
     end
 #不过站检查
-    #update_count = MesPhicomm.update_kcode(barcode, @kcode)
-    #@error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
+#update_count = MesPhicomm.update_kcode(barcode, @kcode)
+#@error_msg = 'SN或者MAC地址錯誤!' if update_count == 0
   end
 
   def print_color_box_label_view
@@ -266,12 +266,12 @@ class MesPhicommsController < ApplicationController
       end
     end
 #not guo zhan
-    #@mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
-    #if @mac_addr.eql?('N/A')
-    #  @error_msg = 'S/N不存在或者錯誤!'
-    #elsif not @mac_addr.present?
-    #  @error_msg = 'S/N未和MAC地址綁定!'
-    #end
+#@mac_addr = MesPhicomm.print_nameplate_box(barcode, printer_ip)
+#if @mac_addr.eql?('N/A')
+#  @error_msg = 'S/N不存在或者錯誤!'
+#elsif not @mac_addr.present?
+#  @error_msg = 'S/N未和MAC地址綁定!'
+#end
   end
 
   def print_outside_box_label_view
@@ -312,13 +312,26 @@ class MesPhicommsController < ApplicationController
   end
 
   def export_to_excel_download
-    sn_text = params[:sn_text]
-    @sn_array = []
-    @sn_array = sn_text.split(',') if sn_text.present?
-    sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid,created_dt from txdb.phicomm_mes_001 where sn in (?)"
-    rows = PoReceipt.find_by_sql([sql, @sn_array])
-    excel = Excel.resultset(rows)
-    send_data excel.to_stream.read, type: "application/xlsx", filename: "filename.xlsx"
+    if params[:dn_no_excel].present?
+      dn_no = params[:dn_no_excel]
+      dn_location = ""
+      sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid,created_dt,dn_no,dn_location from txdb.phicomm_mes_001 where dn_no = '#{dn_no}'"
+      rows = PoReceipt.find_by_sql(sql)
+      excel = Excel.resultset(rows)
+      if rows.present?
+        dn_location = rows.first.dn_location
+      end
+      send_data excel.to_stream.read, type: "application/xlsx", filename: "#{dn_no}_#{dn_location}.xlsx"
+    else
+      sn_text = params[:sn_text]
+      @sn_array = []
+      @sn_array = sn_text.split(',') if sn_text.present?
+      sql = "select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid,created_dt from txdb.phicomm_mes_001 where sn in (?)"
+      rows = PoReceipt.find_by_sql([sql, @sn_array])
+      excel = Excel.resultset(rows)
+      send_data excel.to_stream.read, type: "application/xlsx", filename: "filename.xlsx"
+
+    end
   end
 
   def get_product_info
@@ -377,7 +390,7 @@ class MesPhicommsController < ApplicationController
     end
     redirect_to change_station_view_mes_phicomms_path, notice: '已經更新完成...'
   end
-  
+
   def query_phicomm_view
     @query_phicomms = []
     check = "#{params[:barcode]}"
@@ -389,10 +402,10 @@ class MesPhicommsController < ApplicationController
       @query_phicomms = PoReceipt.find_by_sql(sql)
     end
   end
-  
+
   def query_phicomm_post
   end
-  
+
   def search_barcode
     @query_phicomms = []
     check = "#{params[:barcode]}"
@@ -404,4 +417,37 @@ class MesPhicommsController < ApplicationController
       @query_phicomms = PoReceipt.find_by_sql(sql)
     end
   end
+
+  def verify_dn_no_post
+    dn_no = params[:dn_no] || '0'
+    sql = "select vbeln from sapsr3.likp where mandt='168' and vbeln='#{dn_no}'"
+    @rows = Sapdb.find_by_sql(sql)
+  end
+
+  def barcode_link_dn_view
+  end
+
+  def barcode_link_dn_post
+    barcode = params[:barcode]
+    dn_no = params[:dn_no]
+    dn_location = params[:dn_location]
+    sql = "update txdb.phicomm_mes_001 set dn_no = '#{dn_no}', dn_location = '#{dn_location}' where cartonnumber='#{barcode}'"
+    PoReceipt.connection.execute(sql)
+    @carton = 0
+    @serial = 0
+    sql = "
+      select 'carton' typ,count(*) cnt from (select cartonnumber from txdb.phicomm_mes_001 where dn_no = '#{dn_no}' group by cartonnumber)
+      union all
+      select 'serial',count(*) cnt from txdb.phicomm_mes_001 where dn_no = '#{dn_no}'
+    "
+    PoReceipt.find_by_sql(sql).each do |row|
+      if row.typ.eql?('carton')
+        @carton = row.cnt
+      else
+        @serial = row.cnt
+      end
+    end
+
+  end
+
 end

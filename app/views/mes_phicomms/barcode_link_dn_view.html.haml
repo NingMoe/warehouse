@@ -1,0 +1,85 @@
+= render 'mes_phicomms/submenu'
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-primary
+      .panel-heading
+        .panel-title
+          綁定 DN 號碼
+      .panel-body
+        %form
+          .form-group.col-xs-6
+            %label{for: 'dn_no'}DN號碼
+            = text_field_tag 'dn_no', '', class: 'form-control'
+          .form-group.col-xs-6
+            %label{for: 'dn_location'}發貨地點
+            = text_field_tag 'dn_location', '', class: 'form-control'
+
+        .form-group.col-xs-12
+          %label{for: 'barcode'}外箱條碼
+          = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
+
+  .col-xs-12.col-sm-6
+    = form_tag(export_to_excel_download_mes_phicomms_path, method: 'post') do
+      .panel.panel-primary
+        .panel-heading
+          .panel-title
+            Excel 打印
+        .panel-body
+          %form
+            .form-group.col-xs-6
+              %label{for: 'dn_no_excel'}DN號碼
+              = text_field_tag 'dn_no_excel', '', class: 'form-control'
+            .row
+              .col-xs-12
+                = button_tag id:'btn-excel', type: 'button', class: 'btn btn-primary' do
+                  %span.glyphicon.glyphicon-download-alt
+                  %b
+                  EXCEL
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          DN 數量
+      .panel-body
+        %form
+          .form-group.col-xs-6
+            %label{for: 'carton'}箱數
+            = text_field_tag 'carton', '', class: 'form-control'
+          .form-group.col-xs-6
+            %label{for: 'serial'}總序號數
+            = text_field_tag 'serial', '', class: 'form-control'
+
+:javascript
+
+  $(document).ready(function () {
+    $('#barcode').hide();
+
+    $('#dn_no').change(function(){
+      $.ajax({
+        url: '/mes_phicomms/verify_dn_no_post',
+        method: 'post',
+        data: {dn_no: $('#dn_no').val()}
+      })
+    });
+
+    $('#barcode').change(function(){
+      var barcode = $('#barcode').val();
+      var dn_no = $('#dn_no').val();
+      var dn_location = $('#dn_location').val();
+      $.ajax({
+        url: '/mes_phicomms/barcode_link_dn_post',
+        method: 'post',
+        data: {barcode: barcode, dn_no: dn_no, dn_location: dn_location}
+      })
+      $('#barcode').val('');
+      $('#barcode').focus();
+    });
+
+    $('#btn-excel').click(function(){
+        this.form.submit();
+    });
+
+  })

@@ -1,0 +1,9 @@
+<% if @rows.present? %>
+  $('#barcode').show();
+  $('#dn_no_excel').val($('#dn_no').val());
+<% else %>
+  alert('DN 號碼不存在, 請重新輸入!');
+  $('#barcode').hide();
+  $('#dn_no').val('');
+  $('#dn_no').focus();
+<% end %>

@@ -38,6 +38,9 @@ Rails.application.routes.draw do
     post :update_pallet_label_post, on: :collection
     get :query_phicomm_view, on: :collection
     post :query_phicomm_post, on: :collection
+    get :barcode_link_dn_view, on: :collection
+    post :barcode_link_dn_post, on: :collection
+    post :verify_dn_no_post, on: :collection
   end
 
   resources :mes do
