@@ -58,14 +58,15 @@
         async: false,
         method: 'post',
         data: {barcode: barcode, rowcounter: rowCounter, sn_text: $('#sn_text').val()}
-      })
+      })	  
       $('#barcode').val('');
     });
 
     $('#btn-excel').click(function(){
         this.form.submit();
     });
-
+	
+    $('#barcode').focus();
   })
 
 

@@ -378,15 +378,30 @@ class MesPhicommsController < ApplicationController
     redirect_to change_station_view_mes_phicomms_path, notice: '已經更新完成...'
   end
   
-  def search_barcode
-    @mesPhicomms = []
+  def query_phicomm_view
+    @query_phicomms = []
     check = "#{params[:barcode]}"
     if check.present?
       sql = "
         select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 
             where sn like '%#{params[:barcode]}%'
         "
-      @mesPhicomms = PoReceipt.find_by_sql(sql)
+      @query_phicomms = PoReceipt.find_by_sql(sql)
+    end
+  end
+  
+  def query_phicomm_post
+  end
+  
+  def search_barcode
+    @query_phicomms = []
+    check = "#{params[:barcode]}"
+    if check.present?
+      sql = "
+        select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 
+            where sn like '%#{params[:barcode]}%'
+        "
+      @query_phicomms = PoReceipt.find_by_sql(sql)
     end
   end
 end

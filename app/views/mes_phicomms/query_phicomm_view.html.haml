@@ -1,0 +1,40 @@
+= render 'mes_phicomms/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      掃描清單
+      .pull-right
+        = form_tag(query_phicomm_view_mes_phicomms_url({format: 'xlsx'}), method: 'get') do
+          = hidden_field_tag 'sbm', 'X'
+          = hidden_field_tag 'barcode', params[:barcode]
+          = submit_tag 'Excel', class: 'form-control'
+      .clearfix
+
+  .panel-body
+    = form_tag(query_phicomm_view_mes_phicomms_url, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .row
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'barcode'}条码
+          = text_field_tag 'barcode', params[:barcode], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label &nbsp;
+          = submit_tag '查询', class: 'form-control'
+  .table-responsive
+    %table.table.table-bordered.small
+      %thead
+        %tr
+          %th SN
+          %th KCODE
+      %tbody
+        - @query_phicomms.each do |row|
+          %tr
+            %td= row.sn
+            %td= row.kcode
+
+:javascript
+  $(document).ready(function () {
+    $('#barcode').focus();
+  })

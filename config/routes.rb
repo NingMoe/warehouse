@@ -36,6 +36,8 @@ Rails.application.routes.draw do
     post :change_station_post, on: :collection
     get :update_pallet_label_view, on: :collection
     post :update_pallet_label_post, on: :collection
+    get :query_phicomm_view, on: :collection
+    post :query_phicomm_post, on: :collection
   end
 
   resources :mes do

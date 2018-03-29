@@ -11,3 +11,5 @@ $('#t<%= params[:rowcounter] %>').addClass('success');
 $('#sn_text').val('<%= @sn_array.join(",") %>');
 
 $('#snid').html('<%= @sn_array.join("<br/>").html_safe %>');
+
+$('#barcode').focus();

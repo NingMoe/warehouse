@@ -1,0 +1,10 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "清單") do |sheet|
+    sheet.add_row ['SN',
+                   'Kcode']
+    @query_phicomms.each do |row|
+        sheet.add_row [
+            row.sn,
+            row.kcode]
+    end
+end

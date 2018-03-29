@@ -180,13 +180,13 @@
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT37,48
+      ^FT59,52
       ^A@N,30,30,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
       ^BY2,3,72
-      ^FT39,128^BCN,,N,Y
+      ^FT61,130^BCN,,N,Y
       ^FD#{sn}^FS
-      ^FT37,161
+      ^FT59,162
       ^A@N,30,30,E:ARIAL.TTF
       ^FH^FDH/W Ver.:A1^FS
       ^PQ1,0,1,Y^XZ
@@ -217,11 +217,11 @@
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT45,480
+      ^FT63,540
       ^A@N,40,40,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
       ^BY3,3,78
-      ^FT47,570^BCN,,N,Y
+      ^FT65,640^BCN,,N,Y
       ^FD#{sn}^FS
       ^PQ1,0,1,Y^XZ
     "
@@ -313,15 +313,15 @@
 	^FT700,465^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD数量：#{params[:pack_qty]} pcs^FS
 	^FT95,565^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD净重：#{params[:net_weight]}kg^FS
 	^FT1000,565^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD中国 四川^FS
-	^BY2,3,100^FT158,757^BCN,,Y,N^FD#{sn_array[0]}^FS
-	^BY2,3,100^FT158,900^BCN,,Y,N^FD#{sn_array[2]}^FS
-	^BY2,3,100^FT158,1043^BCN,,Y,N^FD#{sn_array[4]}^FS
-	^BY2,3,100^FT158,1186^BCN,,Y,N^FD#{sn_array[6]}^FS
-	^BY2,3,100^FT158,1329^BCN,,Y,N^FD#{sn_array[8]}^FS
-	^BY2,3,100^FT690,757^BCN,,Y,N^FD#{sn_array[1]}^FS
-	^BY2,3,100^FT690,900^BCN,,Y,N^FD#{sn_array[3]}^FS
-	^BY2,3,100^FT690,1043^BCN,,Y,N^FD#{sn_array[5]}^FS
-	^BY2,3,100^FT690,1186^BCN,,Y,N^FD#{sn_array[7]}^FS
+	^BY2,3,68^FT158,757^BCN,,Y,N^FD#{sn_array[0]}^FS
+	^BY2,3,68^FT158,900^BCN,,Y,N^FD#{sn_array[2]}^FS
+	^BY2,3,68^FT158,1043^BCN,,Y,N^FD#{sn_array[4]}^FS
+	^BY2,3,68^FT158,1186^BCN,,Y,N^FD#{sn_array[6]}^FS
+	^BY2,3,68^FT158,1329^BCN,,Y,N^FD#{sn_array[8]}^FS
+	^BY2,3,68^FT690,757^BCN,,Y,N^FD#{sn_array[1]}^FS
+	^BY2,3,68^FT690,900^BCN,,Y,N^FD#{sn_array[3]}^FS
+	^BY2,3,68^FT690,1043^BCN,,Y,N^FD#{sn_array[5]}^FS
+	^BY2,3,68^FT690,1186^BCN,,Y,N^FD#{sn_array[7]}^FS
 	^PQ1,0,1,Y^XZ
     "
    s = TCPSocket.new(params[:printer_ip], '9100')
@@ -517,11 +517,11 @@
 
   def self.testlum
     sn = "CBDEC2101K00474"
-    net_weight = "11.2"
+    net_weight = "18.10"
     pack_qty = "9"
-    material_number = "9500001"
+    material_number = "911000053"
 	model_number = "TC1"
-    label_barcode = "TC10001"
+    label_barcode = "1100112338C0001"
     zpl_command = "
 	^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
 	^XA^CI28
@@ -542,15 +542,15 @@
 	^FT700,465^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD数量：#{pack_qty} pcs^FS
 	^FT95,565^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD净重：#{net_weight}kg^FS
 	^FT1000,565^A@N,42,40,E:ARIALYAHEI.TTF^FH\^FD中国 四川^FS
-	^BY2,3,100^FT158,757^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT158,900^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT158,1043^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT158,1186^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT158,1329^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT690,757^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT690,900^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT690,1043^BCN,,Y,N^FD#{sn}^FS
-	^BY2,3,100^FT690,1186^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT158,757^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT158,900^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT158,1043^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT158,1186^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT158,1329^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT690,757^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT690,900^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT690,1043^BCN,,Y,N^FD#{sn}^FS
+	^BY2,3,68^FT690,1186^BCN,,Y,N^FD#{sn}^FS
 	^PQ1,0,1,Y^XZ
 "
     s = TCPSocket.new('172.91.39.43', '9100')
@@ -559,6 +559,27 @@
   end
 	
 
+  def self.felixtest
+    sn = "CBDEC2101K00474"  
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD25^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW1768
+      ^LL0413
+      ^LS0
+      ^FT47,530
+      ^A@N,40,40,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY3,3,78
+      ^FT49,620^BCN,,N,Y
+      ^FD#{sn}^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new('172.91.39.42', '9100')
+    s.write zpl_command
+    s.close
+  end
 
 end
 
