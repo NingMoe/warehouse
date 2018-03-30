@@ -260,7 +260,7 @@
     end
     error_msgs.append "條碼重複掃描!" if sn_array.include?(params[:barcode])
 
-    sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
+    sql = "select mac_add from txdb.phicomm_mes_001 where sn=? and cartonnumber is null"
     records = PoReceipt.find_by_sql([sql, params[:barcode]])
     if records.present?
       mac_add = records.first.mac_add
