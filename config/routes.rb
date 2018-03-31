@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     post :print_sn2_post, on: :collection
     get :print_color_box_label_view, on: :collection
     post :print_color_box_label_post, on: :collection
+    get :mac_print_sn_view, on: :collection
+    post :mac_print_sn_post, on: :collection
     get :print_nameplate_box_label_view, on: :collection
     post :print_nameplate_box_label_post, on: :collection
     get :print_outside_box_label_view, on: :collection
@@ -32,6 +34,8 @@ Rails.application.routes.draw do
     post :export_to_excel_download, on: :collection
     get :sn_check_sn_view, on: :collection
     post :sn_check_sn_post, on: :collection
+    get :sn_check_sn_a_view, on: :collection
+    post :sn_check_sn_a_post, on: :collection
     get :change_station_view, on: :collection
     post :change_station_post, on: :collection
     get :update_pallet_label_view, on: :collection
@@ -41,6 +45,7 @@ Rails.application.routes.draw do
     get :barcode_link_dn_view, on: :collection
     post :barcode_link_dn_post, on: :collection
     post :verify_dn_no_post, on: :collection
+	get :index2, on: :collection
   end
 
   resources :mes do

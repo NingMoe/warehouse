@@ -4,6 +4,10 @@ class MesPhicommsController < ApplicationController
   def index
 
   end
+  
+  def index2
+
+  end
 
   def check_sn_view
   end
@@ -32,6 +36,8 @@ class MesPhicommsController < ApplicationController
     @error_msg = nil
     barcode = params[:barcode]
     kcode = params[:kcode]
+	MesPhicomm.rework_one()
+	MesPhicomm.rework_two()
     sn = MesPhicomm.isExistSn(barcode)
     if sn.eql?('N/A')
       @error_msg = 'SN不存在'
@@ -45,6 +51,26 @@ class MesPhicommsController < ApplicationController
         else
           @kcode = kcode
         end
+      else
+        @error_msg = 'SN不相同'
+      end
+    end
+  end
+
+  def sn_check_sn_a_view
+  end
+
+  def sn_check_sn_a_post
+    @error_msg = nil
+    barcode = params[:barcode]
+    kcode = params[:kcode]
+    sn = MesPhicomm.isExistSn(barcode)
+    if sn.eql?('N/A')
+      @error_msg = 'SN不存在'
+    else
+      if barcode.eql?(kcode)       
+        @kcode = "#{barcode} 完成过站，去下一站！"
+        @kcode = kcode
       else
         @error_msg = 'SN不相同'
       end
@@ -225,14 +251,26 @@ class MesPhicommsController < ApplicationController
         @error_msg = "S/N不存在或者不在此站!"
       end
     end
+  end	
+
+  def mac_print_sn_view
+    program = "#{controller_name}.#{action_name}"
+    @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+  end
+
+  def mac_print_sn_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+	MesPhicomm.updateRework(barcode,'30','30')
 
 #不过站检查
-#    @mac_addr = MesPhicomm.print_color_box(barcode, printer_ip)
-#    if @mac_addr.eql?('N/A')
-#      @error_msg = 'S/N不存在或者錯誤!'
-#    elsif not @mac_addr.present?
-#      @error_msg = 'S/N未和MAC地址綁定!'
-#    end
+    @mac_addr = MesPhicomm.mac_print_sn(barcode, printer_ip)
+    if @mac_addr.eql?('N/A')
+      @error_msg = 'S/N不存在或者錯誤!'
+    elsif not @mac_addr.present?
+      @error_msg = 'S/N未和MAC地址綁定!'
+    end
   end
 
   def print_nameplate_box_label_view

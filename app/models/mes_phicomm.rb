@@ -190,13 +190,48 @@
       ^A@N,30,30,E:ARIAL.TTF
       ^FH^FDH/W Ver.:A1^FS
       ^PQ1,0,1,Y^XZ
-
     "
     s = TCPSocket.new(printer_ip, '9100')
     s.write zpl_command
     s.close
   end
-
+  
+  def self.mac_print_sn(barcode_sn, printer_ip)
+    sql = "select sn from txdb.phicomm_mes_001 where sn=?"
+    records = PoReceipt.find_by_sql([sql, barcode_sn])
+    if records.present?
+      mac_add = records.first.sn
+      #mac_print_sn_label(records.first.sn, printer_ip)
+    else
+      mac_add = 'N/A'
+    end
+    mac_add
+  end
+  
+  def self.mac_print_sn_label(sn, printer_ip)
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW1768
+      ^LL0413
+      ^LS0
+      ^FT59,52
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY2,3,72
+      ^FT61,130^BCN,,N,Y
+      ^FD#{sn}^FS
+      ^FT59,162
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDH/W Ver.:A1^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new(printer_ip, '9100')
+    s.write zpl_command
+    s.close
+  end
+  
   def self.print_nameplate_box(barcode_sn, printer_ip)
     sql = "select mac_add from txdb.phicomm_mes_001 where sn=?"
     records = PoReceipt.find_by_sql([sql, barcode_sn])
@@ -217,11 +252,11 @@
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT63,540
+      ^FT55,540
       ^A@N,40,40,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
       ^BY3,3,78
-      ^FT65,640^BCN,,N,Y
+      ^FT57,645^BCN,,N,Y
       ^FD#{sn}^FS
       ^PQ1,0,1,Y^XZ
     "
@@ -509,12 +544,27 @@
     sql = "update txdb.phicomm_mes_001 set station = '#{stationname}',station_up_dt = sysdate where sn = '#{sn}'"
     PoReceipt.connection.execute(sql)
   end
-
-  def self.test_log(sn, stationname,testitem,testvalue,testresult,stime,pcname,created_dt)
-    sql = "insert into txdb.phicomm_mes_log(sn,station,testitem,testvalue,testresult,stime,pcname,created_dt) values('#{sn}','#{stationname}','#{testitem}','#{testvalue}','#{testresult}','#{stime}','#{pcname}',sysdate) "
+  
+  def self.updateRework(sn,workid,stationid)
+    sql = "update txdb.phicomm_mes_001 set station = '#{stationid}', pcname = '#{workid}',stime = sysdate where sn = '#{sn}'"
     PoReceipt.connection.execute(sql)
   end
 
+  def self.rework_one()
+    sql = "update txdb.phicomm_mes_001 set station = '80' where pcname = '30' and station = '40' "
+    PoReceipt.connection.execute(sql)
+  end
+
+  def self.rework_two()
+    sql = "update txdb.phicomm_mes_001 set cartonnumber = ''  where pcname = '30' and station = '90' and cartonnumber like '1100%' "
+    PoReceipt.connection.execute(sql)
+  end
+  
+  def self.test_log(sn, stationname,testitem,testvalue,testresult,stime,pcname,created_dt)
+    sql = "insert into txdb.phicomm_mes_log(sn,station,testitem,testvalue,testresult,stime,pcname,created_dt) values('#{sn}','#{stationname}','#{testitem}','#{testvalue}','#{testresult}','#{stime}','#{pcname}',sysdate) "
+    PoReceipt.connection.execute(sql)
+  end  
+  
   def self.testlum
     sn = "CBDEC2101K00474"
     net_weight = "18.10"
@@ -561,22 +611,25 @@
 
   def self.felixtest
     sn = "CBDEC2101K00474"  
-    zpl_command = "
-      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD25^JUS^LRN^CI0^XZ
+    zpl_command = "      
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT47,530
-      ^A@N,40,40,E:ARIAL.TTF
+      ^FT59,52
+      ^A@N,30,30,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
-      ^BY3,3,78
-      ^FT49,620^BCN,,N,Y
+      ^BY2,3,72
+      ^FT61,130^BCN,,N,Y
       ^FD#{sn}^FS
+      ^FT59,162
+      ^A@N,30,30,E:ARIAL.TTF
+      ^FH^FDH/W Ver.:A1^FS
       ^PQ1,0,1,Y^XZ
     "
-    s = TCPSocket.new('172.91.39.42', '9100')
+    s = TCPSocket.new('172.91.39.40', '9100')
     s.write zpl_command
     s.close
   end
