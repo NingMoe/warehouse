@@ -311,7 +311,7 @@
       if (params[:pack_qty] || '1').to_i == sn_array.size
         label_barcode = "#{params[:mo_number]}C#{carton_number.to_s.rjust(4, '0')}"
         sn_array_text = sn_array.join("','")
-        sql = "update txdb.phicomm_mes_001 set cartonnumber = '#{label_barcode}', woid='#{params[:mo_number]}' where sn in ('#{sn_array_text}')"
+        sql = "update txdb.phicomm_mes_001 set cartonnumber = '#{label_barcode}', woid='#{params[:mo_number]}' ,cartonnumber_updated_dt = sysdate where sn in ('#{sn_array_text}')"
         PoReceipt.connection.execute sql
         #避免SN數組少於9個元素
         (sn_array.size..8).each {sn_array.append ''}
@@ -431,7 +431,7 @@
   
   def self.update_pallet_label(label_barcode, palletnumber, params)
     update_count = 0
-    sql = "update txdb.phicomm_mes_001 set palletnumber='#{palletnumber}' where sn='#{label_barcode}'"
+    sql = "update txdb.phicomm_mes_001 set palletnumber='#{palletnumber}' , cartonnumber_updated_dt = sysdate where sn='#{label_barcode}'"
     begin
       update_count = PoReceipt.connection.execute(sql)
     rescue
@@ -556,7 +556,7 @@
   end
 
   def self.rework_two()
-    sql = "update txdb.phicomm_mes_001 set cartonnumber = ''  where pcname = '30' and station = '90' and cartonnumber like '1100%' "
+    sql = "update txdb.phicomm_mes_001 set cartonnumber = '', cartonnumber_updated_dt = sysdate  where pcname = '30' and station = '90' and cartonnumber like '1100%' "
     PoReceipt.connection.execute(sql)
   end
   

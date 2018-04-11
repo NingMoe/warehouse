@@ -1,0 +1,13 @@
+<% if @error_msgs.present? %>
+$('#s<%= params[:rowcounter] %>').text('<%= raw(@error_msgs.join(", ")) %>');
+$('#s<%= params[:rowcounter] %>').addClass('danger');
+$('#t<%= params[:rowcounter] %>').addClass('danger');
+<% else %>
+$('#s<%= params[:rowcounter] %>').text('<%= @success %>');
+$('#s<%= params[:rowcounter] %>').addClass('success');
+$('#t<%= params[:rowcounter] %>').addClass('success');
+<% end %>
+
+<% (0..5).each do |i| %>
+$('#sn<%= i+1 %>').val('<%= @sn_array[i]%>');
+<% end %>

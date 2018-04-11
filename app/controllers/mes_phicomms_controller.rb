@@ -36,8 +36,7 @@ class MesPhicommsController < ApplicationController
     @error_msg = nil
     barcode = params[:barcode]
     kcode = params[:kcode]
-	MesPhicomm.rework_one()
-	MesPhicomm.rework_two()
+	#MesPhicomm.rework_one()
     sn = MesPhicomm.isExistSn(barcode)
     if sn.eql?('N/A')
       @error_msg = 'SN不存在'
@@ -48,6 +47,7 @@ class MesPhicommsController < ApplicationController
           MesPhicomm.saveNextStation(sn, "80")
           @kcode = "#{barcode} 完成过站，去下一站！"
           MesPhicomm.test_log(barcode, '80', '', '', barcode + ' 完成过站，去下一站！', '', '', '')
+		  MesPhicomm.rework_two()
         else
           @kcode = kcode
         end
@@ -231,6 +231,8 @@ class MesPhicommsController < ApplicationController
     printer_ip = params[:printer_ip]
     @error_msg = nil
 
+	#MesPhicomm.rework_jump('40','70')
+	
 #过站检查
     msg = MesPhicomm.checkRoute(barcode, "70")
     if msg.eql?("ok")
@@ -241,6 +243,7 @@ class MesPhicommsController < ApplicationController
         @error_msg = 'S/N未和MAC地址綁定!'
       else
         MesPhicomm.saveNextStation(barcode, "70")
+	    #MesPhicomm.rework_three('70')
         @kcode = "完成过站，去下一站！"
       end
     end
@@ -461,6 +464,14 @@ class MesPhicommsController < ApplicationController
     sql = "select vbeln from sapsr3.likp where mandt='168' and vbeln='#{dn_no}'"
     @rows = Sapdb.find_by_sql(sql)
   end
+  
+  
+  def check_barcode_label_view
+  end
+
+  def check_barcode_label_post
+    @sn_array, @error_msgs, @init_num = MesPhicomm.check_barcode_label(params)
+  end
 
   def barcode_link_dn_view
   end
@@ -469,7 +480,7 @@ class MesPhicommsController < ApplicationController
     barcode = params[:barcode]
     dn_no = params[:dn_no]
     dn_location = params[:dn_location]
-    sql = "update txdb.phicomm_mes_001 set dn_no = '#{dn_no}', dn_location = '#{dn_location}' where cartonnumber='#{barcode}'"
+    sql = "update txdb.phicomm_mes_001 set dn_no = '#{dn_no}', dn_location = '#{dn_location}',dn_updated_dt = sysdate where cartonnumber='#{barcode}'"
     PoReceipt.connection.execute(sql)
     @carton = 0
     @serial = 0
