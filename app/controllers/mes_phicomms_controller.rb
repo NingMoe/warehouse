@@ -47,7 +47,7 @@ class MesPhicommsController < ApplicationController
           MesPhicomm.saveNextStation(sn, "80")
           @kcode = "#{barcode} 完成过站，去下一站！"
           MesPhicomm.test_log(barcode, '80', '', '', barcode + ' 完成过站，去下一站！', '', '', '')
-		  MesPhicomm.rework_two()
+		  #MesPhicomm.rework_two()
         else
           @kcode = kcode
         end
@@ -480,7 +480,7 @@ class MesPhicommsController < ApplicationController
     barcode = params[:barcode]
     dn_no = params[:dn_no]
     dn_location = params[:dn_location]
-    sql = "update txdb.phicomm_mes_001 set dn_no = '#{dn_no}', dn_location = '#{dn_location}',dn_updated_dt = sysdate where cartonnumber='#{barcode}'"
+    sql = "update txdb.phicomm_mes_001 set dn_no = '#{dn_no}', dn_location = '#{dn_location}',dn_updated_dt = sysdate where cartonnumber='#{barcode}' and station='90' and kcode is not null and mac_add is not null "
     PoReceipt.connection.execute(sql)
     @carton = 0
     @serial = 0
