@@ -252,11 +252,11 @@
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT55,540
+      ^FT60,505
       ^A@N,40,40,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
       ^BY3,3,78
-      ^FT57,645^BCN,,N,Y
+      ^FT62,597^BCN,,N,Y
       ^FD#{sn}^FS
       ^PQ1,0,1,Y^XZ
     "
@@ -611,22 +611,19 @@
 
   def self.felixtest
     sn = "CBDEC2101K00474"  
-    zpl_command = "      
-      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
+    zpl_command = "
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD30^JUS^LRN^CI0^XZ
       ^XA
       ^MMT
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT59,52
-      ^A@N,30,30,E:ARIAL.TTF
+      ^FT60,505
+      ^A@N,40,40,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
-      ^BY2,3,72
-      ^FT61,130^BCN,,N,Y
+      ^BY3,3,78
+      ^FT62,597^BCN,,N,Y
       ^FD#{sn}^FS
-      ^FT59,162
-      ^A@N,30,30,E:ARIAL.TTF
-      ^FH^FDH/W Ver.:A1^FS
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new('172.91.39.40', '9100')
