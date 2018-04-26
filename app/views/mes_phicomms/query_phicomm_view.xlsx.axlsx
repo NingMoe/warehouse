@@ -1,10 +1,28 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "清單") do |sheet|
     sheet.add_row ['SN',
-                   'Kcode']
+                   'Kcode',
+                   'KCODE_UPDATED_DT',
+                   'MAC_ADDR',
+                   '站点',
+                   '外箱编号',
+                   '打印外箱时间',
+                   '建立时间',
+                   'DN编号',
+                   'DN地点',
+                   'DN时间']
     @query_phicomms.each do |row|
         sheet.add_row [
             row.sn,
-            row.kcode]
+            row.kcode,
+            row.kcode_updated_dt,
+            row.mac_add,
+            row.station,
+            row.cartonnumber,
+            row.cartonnumber_updated_dt,
+            row.created_dt,
+            row.dn_no,
+            row.dn_location,
+            row.dn_updated_dt]
     end
 end

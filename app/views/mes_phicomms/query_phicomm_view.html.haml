@@ -28,11 +28,27 @@
         %tr
           %th SN
           %th KCODE
+          %th MAC地址
+          %th 站点
+          %th 外箱编号
+          %th 建立时间
+          %th DN编号
+          %th DN地点
+          %th DN时间
+          %th 打印外箱时间
       %tbody
         - @query_phicomms.each do |row|
           %tr
             %td= row.sn
             %td= row.kcode
+            %td= row.mac_add
+            %td= row.station
+            %td= row.cartonnumber
+            %td= row.created_dt
+            %td= row.dn_no
+            %td= row.dn_location
+            %td= row.dn_updated_dt
+            %td= row.cartonnumber_updated_dt
 
 :javascript
   $(document).ready(function () {

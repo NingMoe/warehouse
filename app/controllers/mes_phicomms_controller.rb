@@ -422,10 +422,10 @@ class MesPhicommsController < ApplicationController
         sql = "delete txdb.phicomm_mes_001 where sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       elsif params[:station].to_i <= 50 and params[:station].to_i > 10
-        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
+        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', station_edit_user = '#{@current_user_email}', status = 'BACK', station_edit_dt = sysdate where dn_no is null and sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       else
-        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', station_edit_user = '#{@current_user_email}', status = 'BACK', station_edit_dt = sysdate where sn in ('#{sn_list}')"
+        sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', station_edit_user = '#{@current_user_email}', status = 'BACK', station_edit_dt = sysdate where dn_no is null and sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
       end
     end
@@ -437,8 +437,8 @@ class MesPhicommsController < ApplicationController
     check = "#{params[:barcode]}"
     if check.present?
       sql = "
-        select sn,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,mac_add as mac,kcode,factoryid from txdb.phicomm_mes_001 
-            where sn like '%#{params[:barcode]}%'
+        select mac_add,sn,kcode,station,testitem,testvalue,testresult,stime,pcname,partnumber,productname,woid,cartonnumber,palletnumber,storehouseid,locid,plant,factoryid,created_dt,updated_dt,station_up_dt,station_edit_dt,station_edit_user,status,dn_no,dn_location,dn_updated_dt,kcode_updated_dt,cartonnumber_updated_dt from txdb.phicomm_mes_001 
+            where sn like '%#{params[:barcode]}%' or mac_add like '%#{params[:barcode]}%' or cartonnumber like '%#{params[:barcode]}%'
         "
       @query_phicomms = PoReceipt.find_by_sql(sql)
     end
