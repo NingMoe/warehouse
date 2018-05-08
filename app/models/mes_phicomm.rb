@@ -252,11 +252,11 @@
       ^PW1768
       ^LL0413
       ^LS0
-      ^FT60,505
+      ^FT65,505
       ^A@N,40,40,E:ARIAL.TTF
       ^FH^FDS/N:#{sn}^FS
       ^BY3,3,78
-      ^FT62,597^BCN,,N,Y
+      ^FT67,597^BCN,,N,Y
       ^FD#{sn}^FS
       ^PQ1,0,1,Y^XZ
     "
@@ -441,7 +441,7 @@
   
   def self.update_kcode(barcode, kcode)
     update_count = 0
-    sql = "update txdb.phicomm_mes_001 set kcode='#{kcode}' where (sn='#{barcode}' or mac_add='#{barcode}')"
+    sql = "update txdb.phicomm_mes_001 set kcode='#{kcode}',kcode_updated_dt = sysdate where (sn='#{barcode}' or mac_add='#{barcode}')"
     begin
       update_count = PoReceipt.connection.execute(sql)
     rescue
@@ -627,6 +627,28 @@
       ^PQ1,0,1,Y^XZ
     "
     s = TCPSocket.new('172.91.39.40', '9100')
+    s.write zpl_command
+    s.close
+  end
+  	
+  def self.test_name
+    sn = "CBDEC2101K00474"  
+    zpl_command = "      
+      ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD30^JUS^LRN^CI0^XZ
+      ^XA
+      ^MMT
+      ^PW1768
+      ^LL0413
+      ^LS0
+      ^FT60,505
+      ^A@N,40,40,E:ARIAL.TTF
+      ^FH^FDS/N:#{sn}^FS
+      ^BY3,3,78
+      ^FT62,597^BCN,,N,Y
+      ^FD#{sn}^FS
+      ^PQ1,0,1,Y^XZ
+    "
+    s = TCPSocket.new('172.91.39.42', '9100')
     s.write zpl_command
     s.close
   end
