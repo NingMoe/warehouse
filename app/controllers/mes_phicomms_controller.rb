@@ -254,7 +254,39 @@ class MesPhicommsController < ApplicationController
         @error_msg = "S/N不存在或者不在此站!"
       end
     end
-  end	
+  end
+  
+  def print_color_box_label_a2_view
+    program = "#{controller_name}.#{action_name}"
+    @printer_ip, @printer_port = MesPhicomm.get_printer(request.ip, program)
+  end
+
+  def print_color_box_label_a2_post
+    barcode = params[:barcode]
+    printer_ip = params[:printer_ip]
+    @error_msg = nil
+
+#过站检查
+    msg = MesPhicomm.checkRoute(barcode, "70")
+    if msg.eql?("ok")
+      @mac_addr = MesPhicomm.print_color_box_a2(barcode, printer_ip)
+      if @mac_addr.eql?('N/A')
+        @error_msg = 'S/N不存在或者錯誤!'
+      elsif not @mac_addr.present?
+        @error_msg = 'S/N未和MAC地址綁定!'
+      else
+        MesPhicomm.saveNextStation(barcode, "70")
+        @kcode = "完成过站，去下一站！"
+      end
+    end
+    if not msg.eql?("ok")
+      if @error_msg.present?
+        @error_msg = msg
+      else
+        @error_msg = "S/N不存在或者不在此站!"
+      end
+    end
+  end
 
   def mac_print_sn_view
     program = "#{controller_name}.#{action_name}"
@@ -418,9 +450,11 @@ class MesPhicommsController < ApplicationController
   def change_station_post
     if params[:datas].present? and params[:station].present?
       sn_list = text_area_to_array(params[:datas]).join("','")
+	  barcode = sn_list[0,15]
       if params[:station].to_i == 10
-        sql = "delete txdb.phicomm_mes_001 where sn in ('#{sn_list}')"
+        sql = "delete txdb.phicomm_mes_001 where sn in ('#{sn_list}') and dn_no is null and cartonnumber is null "
         PoReceipt.connection.execute(sql)
+		MesPhicomm.test_log(barcode, '00', '', '#{sn_list}', ' 回退站點！', '', '', '')
       elsif params[:station].to_i <= 50 and params[:station].to_i > 10
         sql = "update txdb.phicomm_mes_001 set station = '#{params[:station]}', kcode = '', station_edit_user = '#{@current_user_email}', status = 'BACK', station_edit_dt = sysdate where dn_no is null and sn in ('#{sn_list}')"
         PoReceipt.connection.execute(sql)
