@@ -12,6 +12,10 @@
             = text_field_tag 'printer_ip', @printer_ip
       .panel-body
         .form-group.col-xs-12
+          %label{for: 'matnr'}機种
+          = text_field_tag 'matnr', '', class: 'form-control', autofocus: true
+		  
+        .form-group.col-xs-12
           %label{for: 'barcode'}SN條碼
           = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
       .table-responsive{style:"height:100%;overflow-y:auto;"}
@@ -28,13 +32,24 @@
   function addrow(barcode){
     str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
     $('#status_tbody').prepend(str);
-    // if (rowCounter > 20){
-    //   $('tr').last().remove();
-    // }
+  }
+  
+  function chg(){
+    var matnr = $('#matnr').val();
+    if( matnr == 'JDMNU38-1A12U4021W' ){
+        $('#barcode').show();
+    }else{
+        $('#barcode').hide();
+    }
   }
 
   $(document).ready(function () {
-    $('#barcode').focus();
+    $('#barcode').hide();
+	
+    $('#matnr').change(function(){
+        chg();
+    });
+	
     $('#barcode').change(function(){
       rowCounter += 1;
       var barcode = $('#barcode').val();
