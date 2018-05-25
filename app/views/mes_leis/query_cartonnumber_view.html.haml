@@ -1,0 +1,67 @@
+﻿= render 'mes_leis/submenu'
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          外箱條碼查詢
+      .panel-body
+        .form-group.col-xs-12
+          %label{for: 'barcode'}外箱條碼
+          = text_field_tag 'barcode', '', class: 'form-control', autofocus: true
+      .table-responsive{style:"height:100%;overflow-y:auto;"}
+        %table.table.small.table-bordered.table-condensed
+          %thead
+            %tr
+              %th Itm
+              %th 外箱條碼
+              %th Msg
+          %tbody#status_tbody
+
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          查询结果
+      .panel-body
+        %h4#cartonnumber
+        %p
+        %h4#sn1
+        %h4#sn2
+        %h4#sn3
+        %h4#sn4
+        %h4#sn5
+        %h4#sn6
+        %h4#sn7
+        %h4#sn8
+        %h4#sn9
+
+:javascript
+  var rowCounter = 0;
+  function addrow(barcode){
+    var str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
+    $('#status_tbody').prepend(str);
+    if (rowCounter > 10){
+       $('tr').last().remove();
+    }
+  }
+
+  $(document).ready(function () {
+    $('#barcode').focus();
+    $('#barcode').change(function(){
+      rowCounter += 1;
+      var barcode = $('#barcode').val();
+      addrow(barcode);
+      $.ajax({
+        url: '/mes_leis/query_cartonnumber_post',
+        async: false,
+        method: 'post',
+        data: {barcode: barcode, rowcounter: rowCounter}
+      })
+      $('#barcode').val('');
+    });
+
+  })
+
+
