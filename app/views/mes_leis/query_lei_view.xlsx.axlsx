@@ -1,0 +1,26 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "清單") do |sheet|
+    sheet.add_row ['条码',
+                   'P/N',
+                   'D/N',
+                   'PO',
+                   'C/N',
+                   '客戶名',
+                   '工單',
+                   '外箱编号',
+                   '建立时间',
+                   '打印外箱时间']
+    @query_leis.each do |row|
+        sheet.add_row [
+            row.barcode,
+            row.pn_no,
+            row.dn_no,
+            row.po_no,
+            row.cn_no,
+            row.customer_name,
+            row.mo_no,
+            row.cartonnumber,
+            row.created_at,
+            row.cartonnumber_updated_dt]
+    end
+end

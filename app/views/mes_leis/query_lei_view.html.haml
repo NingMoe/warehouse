@@ -1,0 +1,56 @@
+= render 'mes_leis/submenu'
+
+.panel.panel-default
+  .panel-heading
+    .panel-title
+      掃描清單
+      .pull-right
+        = form_tag(query_lei_view_mes_leis_url({format: 'xlsx'}), method: 'get') do
+          = hidden_field_tag 'sbm', 'X'
+          = hidden_field_tag 'barcode', params[:barcode]
+          = submit_tag 'Excel', class: 'form-control'
+      .clearfix
+
+  .panel-body
+    = form_tag(query_lei_view_mes_leis_url, method: 'get') do
+      = hidden_field_tag 'sbm', 'X'
+      .row
+        .form-group.col-xs-6.col-sm-3
+          %label{for: 'barcode'}条码
+          = text_field_tag 'barcode', params[:barcode], class: 'form-control'
+
+        .form-group.col-xs-6.col-sm-3
+          %label &nbsp;
+          = submit_tag '查询', class: 'form-control'
+  .table-responsive
+    %table.table.table-bordered.small
+      %thead
+        %tr
+          %th 条码
+          %th P/N
+          %th D/N
+          %th PO
+          %th C/N
+          %th 客戶名
+          %th 工單
+          %th 箱号
+          %th 建立时间
+          %th 打印外箱时间
+      %tbody
+        - @query_leis.each do |row|
+          %tr
+            %td= row.barcode
+            %td= row.pn_no
+            %td= row.dn_no
+            %td= row.po_no
+            %td= row.cn_no
+            %td= row.customer_name
+            %td= row.mo_no
+            %td= row.cartonnumber
+            %td= row.created_at
+            %td= row.cartonnumber_updated_dt
+
+:javascript
+  $(document).ready(function () {
+    $('#barcode').focus();
+  })

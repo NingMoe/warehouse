@@ -19,8 +19,8 @@
           %thead
             %tr
               %th Itm
-              %th S/N
-              %th MAC Addr
+              %th Barcode
+              %th Msg
           %tbody#status_tbody
 
   .col-xs-12.col-sm-6
@@ -39,22 +39,25 @@
               %label{for: 'mo_number'}工單
               =text_field_tag 'mo_number', @mo_number, class: 'form-control'
             .col-xs-4
+              %label{for: 'po_number'}PO
+              =text_field_tag 'po_number', @po_number, class: 'form-control'
+            .col-xs-4
               %label{for: 'carton_number'}箱號
               =text_field_tag 'carton_number', @carton_number, class: 'form-control'
           .row
             .col-xs-4
-              %label{for: 'model_number'}型號
-              =text_field_tag 'model_number', @model_number, class: 'form-control'
+              %label{for: 'customer_number'}客户名
+              =text_field_tag 'customer_number', @customer_number, class: 'form-control'
             .col-xs-4
-              %label{for: 'material_number'}料號
-              =text_field_tag 'material_number', @material_number, class: 'form-control'
+              %label{for: 'pn_number'}P/N
+              =text_field_tag 'pn_number', @pn_number, class: 'form-control'
             .col-xs-4
-              %label{for: 'net_weight'}淨重
-              =text_field_tag 'net_weight', @net_weight, class: 'form-control'
+              %label{for: 'dn_number'}D/N
+              =text_field_tag 'dn_number', @dn_number, class: 'form-control'
           %p
 
         .form-inline
-          - for i in 1..9
+          - for i in 1..120
             .form-group
               %label{for: "sn#{i}"}
                 = i
@@ -66,9 +69,6 @@
   function addrow(barcode){
     str = "<tr><td>"+rowCounter+"</td><td id='t"+rowCounter+"'>"+barcode+"</td><td id='s"+rowCounter+"'>...</td>";
     $('#status_tbody').prepend(str);
-    // if (rowCounter > 20){
-    //   $('tr').last().remove();
-    // }
   }
 
   function update_program_setting(field_name, field_value){
@@ -101,9 +101,10 @@
           pack_qty: $('#pack_qty').val(),
           mo_number: $('#mo_number').val(),
           carton_number: $('#carton_number').val(),
-          model_number: $('#model_number').val(),
-          material_number: $('#material_number').val(),
-          net_weight: $('#net_weight').val(),
+          customer_number: $('#customer_number').val(),
+          po_number: $('#po_number').val(),
+          pn_number: $('#pn_number').val(),
+          dn_number: $('#dn_number').val(),
           sn1: $('#sn1').val(),
           sn2: $('#sn2').val(),
           sn3: $('#sn3').val(),
@@ -118,22 +119,6 @@
       $('#barcode').val('');
       $('#barcode').focus();
     });
-
-    $('#mo_number').change(function(){
-      update_program_setting('mo_number', $('#mo_number').val());
-    })
-
-    $('#model_number').change(function(){
-      update_program_setting('model_number', $('#model_number').val());
-    })
-
-    $('#material_number').change(function(){
-      update_program_setting('material_number', $('#material_number').val());
-    })
-
-    $('#net_weight').change(function(){
-      update_program_setting('net_weight', $('#net_weight').val());
-    })
 
     $('#printer_ip').change(function(){
       var printer_ip = $('#printer_ip').val();

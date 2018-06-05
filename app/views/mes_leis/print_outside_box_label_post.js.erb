@@ -3,12 +3,12 @@ $('#s<%= params[:rowcounter] %>').text('<%= raw(@error_msgs.join(", ")) %>');
 $('#s<%= params[:rowcounter] %>').addClass('danger');
 $('#t<%= params[:rowcounter] %>').addClass('danger');
 <% else %>
-$('#s<%= params[:rowcounter] %>').text('<%= @success_msg %>');
+$('#s<%= params[:rowcounter] %>').text('<%= @mac_add %>');
 $('#s<%= params[:rowcounter] %>').addClass('success');
 $('#t<%= params[:rowcounter] %>').addClass('success');
 <% end %>
 
 $('#carton_number').val('<%= @carton_number%>');
-<% (0..8).each do |i| %>
+<% (0..119).each do |i| %>
 $('#sn<%= i+1 %>').val('<%= @sn_array[i]%>');
 <% end %>
