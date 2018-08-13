@@ -5,6 +5,15 @@ Rails.application.routes.draw do
     post :print_outside_box_label_post, on: :collection
     get :query_lei_view, on: :collection
     post :query_lei_post, on: :collection
+    post :update_program_setting, on: :collection
+    post :update_printer, on: :collection
+    post :save_barcode, on: :collection
+    get :read_barcode, on: :collection
+    get :scan_barcode, on: :collection
+    get :process_barcode, on: :collection
+    get :get_product_order, on: :collection
+    post :process_barcodes, on: :collection
+    post :get_product_orders, on: :collection
   end
 
   resources :mes_phicomms do
@@ -20,8 +29,6 @@ Rails.application.routes.draw do
     post :print_sn2_post, on: :collection
     get :print_color_box_label_view, on: :collection
     post :print_color_box_label_post, on: :collection
-    #get :mac_print_sn_view, on: :collection
-    post :mac_print_sn_post, on: :collection
     get :print_nameplate_box_label_view, on: :collection
     post :print_nameplate_box_label_post, on: :collection
     get :print_outside_box_label_view, on: :collection
@@ -41,14 +48,10 @@ Rails.application.routes.draw do
     post :export_to_excel_download, on: :collection
     get :sn_check_sn_view, on: :collection
     post :sn_check_sn_post, on: :collection
-    get :sn_check_sn_a_view, on: :collection
-    post :sn_check_sn_a_post, on: :collection
     get :change_station_view, on: :collection
     post :change_station_post, on: :collection
     get :update_pallet_label_view, on: :collection
     post :update_pallet_label_post, on: :collection
-    get :check_barcode_label_view, on: :collection
-    post :check_barcode_label_post, on: :collection
     get :query_phicomm_view, on: :collection
     post :query_phicomm_post, on: :collection
     get :barcode_link_dn_view, on: :collection
@@ -56,7 +59,8 @@ Rails.application.routes.draw do
     post :verify_dn_no_post, on: :collection
     get :print_color_box_label_a2_view, on: :collection
     post :print_color_box_label_a2_post, on: :collection
-	#get :index2, on: :collection
+    get :cancel_outside_box_label_view, on: :collection
+    post :cancel_outside_box_label_post, on: :collection
   end
 
   resources :mes do
@@ -66,6 +70,8 @@ Rails.application.routes.draw do
     post :create_new_barcode_by_lot_post, on: :collection
     get :sn_enquiry_by_lot_view, on: :collection
     post :sn_enquiry_by_lot_post, on: :collection
+    get :print_mes_sn_view, on: :collection
+    post :print_mes_sn_post, on: :collection
   end
 
   resources :saprfcs do

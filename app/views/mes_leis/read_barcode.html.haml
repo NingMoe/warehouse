@@ -1,0 +1,42 @@
+%h3 Barcode掃描
+
+= form_tag(process_barcode_mes_leis_url, method: 'get', class: 'form-inline', remote: true, id:'form_id') do
+  = text_field_tag :aufnr, nil, placeholder: '工单', class: 'form-control', value: params[:aufnr], id: 'aufnr'
+  = text_field_tag :qrcode, nil,placeholder: '條碼', class: 'form-control', value: '', id: 'qrcode'
+  筆數:
+  = text_field_tag :counter, nil, class: 'form-control text-center', value: '', id: 'counter', value: params[:counter], disabled: 'disabled', size: '5'
+  = text_field_tag :matnr, nil, class: 'form-control', id: 'matnr', value: params[:matnr], readonly: 'readonly'
+  長度:
+  = text_field_tag :code_length, nil, class: 'form-control text-center', id: 'code_length', value: params[:code_length], readonly: 'readonly', size: '2'
+  包装数量:
+  = text_field_tag :pack_qty, nil, class: 'form-control text-center', id: 'pack_qty', value: params[:pack_qty], readonly: 'readonly', size: '2'
+  箱號:
+  = text_field_tag :carton_number, nil, class: 'form-control text-center', id: 'carton_number', value: params[:carton_number], readonly: 'readonly', size: '2'
+  打印IP:
+  = text_field_tag :printer_ip, nil, class: 'form-control text-center', id: 'printer_ip', value: params[:printer_ip], size: '10'
+%br
+%div#status
+%br
+
+%audio#dacuo{src: '/dacuo.mp3'}
+
+:javascript
+  $(document).ready(function () {
+    $('#aufnr').focus();
+
+    $('#aufnr').change(function(){
+      $.ajax({
+        url: '/mes_leis/get_product_order',
+        data: {aufnr: $('#aufnr').val()}
+      })
+    });
+
+    $('#qrcode').change(function(){
+      if ($('#qrcode').val() != ""){
+          $('#form_id').submit();
+      }
+      $('#qrcode').val("");
+    });
+
+  })
+

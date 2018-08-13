@@ -1,0 +1,9 @@
+<% if @error_msg.present? %>
+$('#s<%= params[:rowcounter] %>').text('<%= @error_msg%>');
+$('#s<%= params[:rowcounter] %>').addClass('danger');
+$('#t<%= params[:rowcounter] %>').addClass('danger');
+<% else %>
+$('#s<%= params[:rowcounter] %>').text('<%= @msg %>');
+$('#s<%= params[:rowcounter] %>').addClass('success');
+$('#t<%= params[:rowcounter] %>').addClass('success');
+<% end %>

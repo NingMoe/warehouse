@@ -40,10 +40,7 @@
     error_msgs.append "掃入條碼不可為空!" if params[:barcode].blank?
 
     sn_array = []
-    (1..250).each do |i|
-      sn_array.append params["sn#{i}"] if params["sn#{i}"].present?
-    end
-    error_msgs.append "條碼重複掃描!" if sn_array.include?(params[:barcode])
+    #error_msgs.append "條碼重複掃描!" if sn_array.include?(params[:barcode])
 
     sql = "select barcode from txdb.mes_leis where barcode=? "
     records = PoReceipt.find_by_sql([sql, params[:barcode]])
@@ -59,6 +56,7 @@
 	dn_number = params[:dn_number]
 	po_number = params[:po_number]
 	mo_number = params[:mo_number]
+	printer_ip = params[:printer_ip]
 	pack_qty = params[:pack_qty]
     if error_msgs.blank?
       #加入SN數組
@@ -69,19 +67,21 @@
         sql = "update txdb.mes_leis set pn_no = '#{pn_number}',dn_no = '#{dn_number}',po_no = '#{po_number}',mo_no = '#{mo_number}',cn_no = '#{cn_number}',customer_name = '#{customer_number}',cartonnumber = '#{cn_number}',cartonnumber_updated_dt = sysdate where barcode in ('#{sn_array_text}')"
         PoReceipt.connection.execute(sql)
         #避免SN數組少於250個元素
-        (sn_array.size..250).each {sn_array.append ''}
+        (sn_array.size..params[:pack_qty].to_i).each {sn_array.append ''}
 
         # 打印标签
-        print_outside_box_label(customer_number, pn_number, dn_number, po_number, cn_number, pack_qty, params)
+		if !printer_ip.eql? '127.0.0.1'
+			print_outside_box_label(customer_number, pn_number, dn_number, po_number, cn_number, pack_qty, printer_ip)
+		end
         carton_number += 1
         sn_array.clear
       end
     end
-    (sn_array.size..250).each {sn_array.append ''}
+    (sn_array.size..params[:pack_qty].to_i).each {sn_array.append ''}
     return [sn_array, error_msgs, mac_add, carton_number.to_s.rjust(4, '0')]
   end
 
-  def self.print_outside_box_label(customer_number, pn_number, dn_number, po_number, cn_number, pack_qty, params)
+  def self.print_outside_box_label(customer_number, pn_number, dn_number, po_number, cn_number, pack_qty, printer_ip)
     zpl_command = "
       	^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^PR4,4~SD28^JUS^LRN^CI0^XZ
 	^XA^CI28
@@ -97,7 +97,7 @@
 	^FT45,1800^A0N,100,100^FH\^FDQTY:#{pack_qty}^FS
 	^PQ1,0,1,Y^XZ
     "
-   s = TCPSocket.new(params[:printer_ip], '9100')
+    s = TCPSocket.new("#{printer_ip}", '9100')
     s.write zpl_command
     s.close
   end
@@ -130,6 +130,86 @@
     if !records.present?
       sql = "insert into txdb.mes_leis (barcode,created_at) values ('#{params[:barcode]}',sysdate)"
       PoReceipt.connection.execute(sql)
+    end
+  end
+  
+  def self.get_product_order(aufnr)
+    sql = "select aufnr,matnr,pwerk from sapsr3.afpo@SAPP where mandt='168' and aufnr = ?"
+    records = PoReceipt.find_by_sql([sql, aufnr])
+    if records.present?
+      return [records.first.aufnr, records.first.matnr, records.first.pwerk]
+    else
+      return ['', '', '']
+    end
+  end
+  
+  def self.get_mes_leis(aufnr)
+    sql = "select count(*) counter, nvl(max(length(barcode)),0) code_length from txdb.mes_leis where aufnr = ?"
+    records = PoReceipt.find_by_sql([sql, aufnr])
+    if records.present?
+      return [records.first.counter, records.first.code_length]
+    else
+      return ['0', '0']
+    end
+  end
+  
+  def self.get_mes_leis_count(aufnr)
+    sql = "select count(*) c from txdb.mes_leis where aufnr = ?"
+    records = PoReceipt.find_by_sql([sql, aufnr])
+    if records.present?
+      return records.first.c
+    else
+      return '0'
+    end
+  end
+  
+  def self.get_aufnr_cartonnumber_count(aufnr, cartonnumber)
+    sql = "select count(*) c from txdb.mes_leis where cartonnumber = ? and aufnr = ?"
+    records = PoReceipt.find_by_sql([sql, cartonnumber, aufnr])
+    if records.present?
+      return records.first.c
+    else
+      return '0001'
+    end
+  end
+  
+  def self.get_aufnr_cartonnumber(aufnr)
+    sql = "select aufnr,matnr,cartonnumber,count(*) count from txdb.mes_leis group by aufnr,matnr,cartonnumber having aufnr = ? and cartonnumber in ( with maxc as ( select aufnr,matnr,cartonnumber,count(*) count from txdb.mes_leis	group by aufnr,matnr,cartonnumber having aufnr = ? ) select max(cartonnumber) from maxc )"
+    records = PoReceipt.find_by_sql([sql, aufnr, aufnr])
+    if records.present?
+      return [records.first.aufnr, records.first.matnr, records.first.cartonnumber, records.first.count]
+    else
+      return [aufnr, '', '0001', '0']
+    end
+  end
+  
+  def self.get_barcode_count(barcode)
+    sql = "select count(*) c from txdb.mes_leis where barcode = ?"
+    records = PoReceipt.find_by_sql([sql, barcode])
+    if records.present?
+      return records.first.c
+    else
+      return ''
+    end
+  end
+  
+  def self.get_carton_number(matnr, werk)
+    sql = "select rtrim(substr(a.potx1,INSTR(a.potx1,'/',-1,1)+1,INSTR(a.potx1,' ',-1,1)-INSTR(a.potx1,'/',-1,1))) as pack_qty from it.sbomxtb@ORACLETW a join sapsr3.mara@sapp b on b.mandt='168' and b.matnr=a.cmatnr where a.pmatnr=? and a.werks=? and (a.cmaktx like 'CARTON%')"
+    records = PoReceipt.find_by_sql([sql, matnr, werk])
+    if records.present?
+      return records.first.pack_qty
+    else
+      return ''
+    end
+  end
+  
+  def self.get_kunnr(matnr, werk)
+    sql = "select b.sortl from sapsr3.knmt@sapp a, sapsr3.kna1@sapp b where a.mandt='168' and a.kunnr = b.kunnr and a.matnr= ? "
+    records = PoReceipt.find_by_sql([sql, matnr])
+    if records.present?
+      return records.first.sortl
+    else
+      return ''
     end
   end
   

@@ -532,5 +532,14 @@ class MesPhicommsController < ApplicationController
     end
 
   end
+  
+  def cancel_outside_box_label_view
+  end
+
+  def cancel_outside_box_label_post
+    barcode = params[:barcode]
+    @msg = 'success'
+    MesPhicomm.update_outside_box_label(barcode)
+  end
 
 end

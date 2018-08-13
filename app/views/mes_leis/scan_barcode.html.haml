@@ -1,0 +1,125 @@
+﻿= render 'mes_leis/submenu'
+
+.row
+  .col-xs-12.col-sm-6
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          Barcode掃描
+          .pull-right
+            %label{for: 'printer_ip'}打印機IP
+            = text_field_tag 'printer_ip', @printer_ip
+      .panel-body
+        %form
+          .form-group.col-xs-12
+            %label{for: 'aufnr'}工單
+            = text_field_tag 'aufnr', '', class: 'form-control'
+
+          .form-group.col-xs-12
+            %label{for: 'qrcode'}條碼
+            = text_field_tag 'qrcode', '', class: 'form-control', autofocus: true
+
+  .col-xs-12.col-sm-6
+    .panel.panel-success
+      .panel-heading
+        .panel-title
+          设定值
+
+      .panel-body
+        .panel-title
+          .row
+            .col-xs-4
+              %label{for: 'customer_number'}客户名
+              =text_field_tag 'customer_number', @customer_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'pn_number'}P/N
+              =text_field_tag 'pn_number', @pn_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'dn_number'}D/N
+              =text_field_tag 'dn_number', @dn_number, class: 'form-control'
+          .row
+            .col-xs-4
+              %label{for: 'po_number'}PO
+              =text_field_tag 'po_number', @po_number, class: 'form-control'
+            .col-xs-4
+              %label{for: 'pack_qty'}包装数量
+              =text_field_tag 'pack_qty', @pack_qty, class: 'form-control'
+            .col-xs-4
+              %label{for: 'carton_number'}箱號
+              =text_field_tag 'carton_number', @carton_number, class: 'form-control'
+          %p
+
+:javascript
+  var rowCounter = 0;
+
+  function update_program_setting(field_name, field_value){
+     $.ajax({
+          url: '/mes_leis/update_program_setting',
+          method: 'post',
+          data: {
+            program: $('#program').val(),
+            field_name: field_name,
+            field_value: field_value
+          }
+    })
+  }
+
+  $(document).ready(function () {
+    $('#aufnr').focus();
+    $('#qrcode').change(function(){
+      rowCounter += 1;
+      var qrcode = $('#qrcode').val();
+      var printer_ip = $('#printer_ip').val();
+      $.ajax({
+        url: '/mes_leis/process_barcode',
+        method: 'post',
+        async: false,
+        data: {
+          qrcode: qrcode,
+          rowcounter: rowCounter,
+          printer_ip: printer_ip,
+          pack_qty: $('#pack_qty').val(),
+          mo_number: $('#mo_number').val(),
+          carton_number: $('#carton_number').val(),
+          customer_number: $('#customer_number').val(),
+          po_number: $('#po_number').val(),
+          pn_number: $('#pn_number').val(),
+          dn_number: $('#dn_number').val()
+          }
+      })
+      $('#qrcode').val('');
+      $('#qrcode').focus();
+    });
+
+    $('#aufnr').change(function(){
+      var aufnr = $('#aufnr').val();
+
+      $.ajax({
+        url: '/mes_leis/get_product_orders',
+        method: 'post',
+        async: false,
+        data: {
+          aufnr: aufnr,
+          mo_number: $('#mo_number').val(),
+          customer_number: $('#customer_number').val(),
+          po_number: $('#po_number').val(),
+          pn_number: $('#pn_number').val(),
+          dn_number: $('#dn_number').val()
+          }
+      })
+    })
+	
+    $('#printer_ip').change(function(){
+      var printer_ip = $('#printer_ip').val();
+      var program = $('#program').val();
+
+      $.ajax({
+        url: '/mes_leis/update_printer',
+        method: 'post',
+        data: {printer_ip: printer_ip, program: program}
+      })
+    })
+
+  })
+
+
