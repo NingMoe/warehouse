@@ -28,7 +28,7 @@ class MesLeisController < ApplicationController
     check = "#{params[:barcode]}"
     if check.present?
       sql = "
-        select barcode,pn_no,dn_no,po_no,cn_no,customer_name,mo_no,created_at,cartonnumber,cartonnumber_updated_dt from txdb.mes_leis 
+        select barcode,matnr as pn_no,dn_no,po_no,cn_no,customer_name,aufnr as mo_no,created_at,cartonnumber,cartonnumber_updated_dt from txdb.mes_leis 
             where barcode like '%#{params[:barcode]}%' or cartonnumber like '%#{params[:barcode]}%'
         "
       @query_leis = PoReceipt.find_by_sql(sql)
@@ -51,29 +51,19 @@ class MesLeisController < ApplicationController
     else
       begin
 		records = MesLei.get_barcode_count(params[:qrcode])
-		list = MesLei.get_product_order(params[:aufnr].rjust(12, '0'))
-		pack_qty = MesLei.get_carton_number(list[1],list[2])
-		carton_number = params[:carton_number].rjust(4, '0')
-		rows = MesLei.get_aufnr_cartonnumber(params[:aufnr])
-		customer_name = MesLei.get_kunnr(list[1],list[2])
+		pack_qty = params[:pack_qty]
+		customer_name = params[:customer_name]
 		printer_ip = params[:printer_ip]
-		carton_num = rows[2]
-		num = rows[3]
+		counter = 0
+		num = params[:counter]
+		
+		carton_num = ((params[:counter].to_i) / (pack_qty.to_i) + 1)
+	    carton_number = carton_num.to_s.rjust(4, '0')
+	    old_carton_number = carton_num.to_s.rjust(4, '0')
+		
+		number = 1
 		
 		printer_ip = '127.0.0.1' if printer_ip.blank?
-		
-		#扫条码数达到包装数量时，自动增加箱号
-		if num.to_i % pack_qty.to_i == 0 and num.to_i != 0
-			#IP不是127.0.0.1时，可以打印
-			if !printer_ip.eql?'127.0.0.1'
-				cn_number = "#{params[:aufnr].rjust(12, '0')}C#{carton_number.to_s.rjust(4, '0')}"
-				MesLei.print_outside_box_label(customer_name, list[1], '', '', cn_number, pack_qty, printer_ip)
-			end
-		
-			carton_num = carton_num.to_i + 1
-			params[:carton_number] = carton_num.to_s.rjust(4, '0')
-			carton_number = carton_num.to_s.rjust(4, '0')
-		end
 		
 		if !records.blank?
 		  
@@ -81,23 +71,36 @@ class MesLeisController < ApplicationController
 		  PoReceipt.connection.execute(sql)
 		  
 		  counter = MesLei.get_mes_leis_count(params[:aufnr])
-		  #carton_number = rows[2]
+		  carton_number = ((counter.to_i)/(params[:pack_qty].to_i)+1).to_s.rjust(4, '0')
+		  old_carton_number = params[:carton_number]
+		  
+		  #扫条码数达到包装数量时，自动增加箱号
+		  if (counter.to_i % pack_qty.to_i) == 0 and counter.to_i != 0
+			#IP不是127.0.0.1时，可以打印
+			if !printer_ip.eql?'127.0.0.1'
+				cn_number = "#{params[:aufnr].rjust(12, '0')}C#{old_carton_number.to_s.rjust(4, '0')}"
+				MesLei.print_outside_box_label(customer_name, params[:aufnr].rjust(12, '0'), '', '', cn_number, pack_qty, printer_ip)
+			end
+		  end
+		  
           code_length_str = ''
           code_length_str = "$('#code_length').val('#{params[:qrcode].length}');" if params[:code_length].to_i == 0
           render js: "
           $('#status').html('<h1><p style=\"color:green\">#{params[:qrcode]} - 條碼正確 </p></h1><br/>');
           $('#counter').val('#{counter}');
+          $('#pack_qty').val('#{pack_qty}');
           $('#carton_number').val('#{carton_number}');
           #{code_length_str};
                  "
 		else
           counter = MesLei.get_mes_leis_count(params[:aufnr])
-		  carton_number = rows[2]
+		  
           code_length_str = ''
           code_length_str = "$('#code_length').val('#{params[:qrcode].length}');" if params[:code_length].to_i == 0
           render js: "
           $('#status').html('<h1><p style=\"color:red\">#{params[:qrcode]} - 條碼重複. </p></h1><br/>');
           $('#counter').val('#{counter}');
+          $('#pack_qty').val('#{pack_qty}');
           $('#carton_number').val('#{carton_number}');
           #{code_length_str};
                  "		
@@ -112,7 +115,9 @@ class MesLeisController < ApplicationController
   end
   
   def get_product_order
-	carton_number = '0001'
+	#carton_number = '0001'
+	werk = '381A'
+	customer_name = ''
 	list = MesLei.get_product_order(params[:aufnr].rjust(12, '0'))
 	if list.blank?
       render js: "
@@ -120,6 +125,10 @@ class MesLeisController < ApplicationController
              $('#aufnr').val('');
              $('#counter').val('');
              $('#code_length').val('');
+             $('#pack_qty').val('');
+             $('#carton_number').val('');
+             $('#werk').val('');
+             $('#customer_name').val('');
              $('#aufnr').focus();
              alert('工單號碼輸入錯誤!');
              "
@@ -129,14 +138,12 @@ class MesLeisController < ApplicationController
       results = MesLei.get_aufnr_cartonnumber(list[0])
 	  customer_name = MesLei.get_kunnr(list[1],list[2])
 	  carton_number = results[2]
-	  carton_num = results[2]
-	  num = results[3].to_i
+	  num = rows[0].to_i
 	  carton_number = '0001' if carton_number.blank?
 	  
-	  if num.to_i % pack_qty.to_i == 0 and num.to_i != 0
-	    carton_num = carton_num.to_i + 1
-		carton_number = carton_num.to_s.rjust(4, '0')
-	  end
+	  carton_num = (num.to_i / pack_qty.to_i) + 1
+	  carton_number = carton_num.to_s.rjust(4, '0')
+	  
       render js: "
              $('#matnr').val('#{list[1]}');
              $('#aufnr').val('#{list[0]}');
@@ -144,7 +151,8 @@ class MesLeisController < ApplicationController
              $('#code_length').val('#{rows[1]}');
              $('#pack_qty').val('#{pack_qty}');
              $('#carton_number').val('#{carton_number}');
-             $('#carton_number').val('#{carton_number}');
+             $('#werk').val('#{werk}');
+             $('#customer_name').val('#{customer_name}');
              "
     end
   end

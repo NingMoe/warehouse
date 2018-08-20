@@ -194,7 +194,8 @@
   end
   
   def self.get_carton_number(matnr, werk)
-    sql = "select rtrim(substr(a.potx1,INSTR(a.potx1,'/',-1,1)+1,INSTR(a.potx1,' ',-1,1)-INSTR(a.potx1,'/',-1,1))) as pack_qty from it.sbomxtb@ORACLETW a join sapsr3.mara@sapp b on b.mandt='168' and b.matnr=a.cmatnr where a.pmatnr=? and a.werks=? and (a.cmaktx like 'CARTON%')"
+    #sql = "select rtrim(substr(a.potx1,INSTR(a.potx1,'/',-1,1)+1,INSTR(a.potx1,' ',-1,1)-INSTR(a.potx1,'/',-1,1))) as pack_qty from it.sbomxtb@ORACLETW a join sapsr3.mara@sapp b on b.mandt='168' and b.matnr=a.cmatnr where a.pmatnr=? and a.werks=? and (a.cmaktx like 'CARTON%')"
+	sql = "select replace(replace(replace(trim(substr(a.potx1,INSTR(a.potx1,'/',-1,1)+1,3)),')',''),',',''),'(','') as pack_qty from it.sbomxtb@ORACLETW a join sapsr3.mara@sapp b on b.mandt='168' and b.matnr=a.cmatnr where a.pmatnr=? and a.werks=? and (a.cmaktx like 'CARTON%')"
     records = PoReceipt.find_by_sql([sql, matnr, werk])
     if records.present?
       return records.first.pack_qty

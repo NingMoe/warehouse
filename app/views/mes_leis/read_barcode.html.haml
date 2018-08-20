@@ -14,6 +14,8 @@
   = text_field_tag :carton_number, nil, class: 'form-control text-center', id: 'carton_number', value: params[:carton_number], readonly: 'readonly', size: '2'
   打印IP:
   = text_field_tag :printer_ip, nil, class: 'form-control text-center', id: 'printer_ip', value: params[:printer_ip], size: '10'
+  = hidden_field_tag :customer_name, value: params[:customer_name]
+  = hidden_field_tag :werk, value: params[:werk]
 %br
 %div#status
 %br
